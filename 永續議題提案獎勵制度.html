@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>永續議題提案獎勵制度 簡報</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .slide {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .slide.active {
+            display: flex;
+            opacity: 1;
+        }
+        .progress-bar-fill {
+            transition: width 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4 overflow-hidden">
+
+    <div id="presentation-container" class="w-full max-w-5xl aspect-[16/9] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <!-- Slides will be injected here -->
+        <main id="slides-container" class="flex-grow w-full h-full relative">
+            <!-- Slide 1: Title -->
+            <div class="slide active w-full h-full flex-col justify-center items-center p-12 text-center bg-teal-600 text-white">
+                <div class="absolute top-8 left-8 text-lg font-bold">歐萊德國際股份有限公司</div>
+                <h1 class="text-6xl font-bold mb-4 leading-tight">永續議題提案獎勵制度</h1>
+                <p class="text-2xl mt-4">打造全員參與的永續文化</p>
+                <div class="absolute bottom-8 text-lg">2025年 第4季 啟動</div>
+            </div>
+
+            <!-- Slide 2: 提案目的 -->
+            <div class="slide w-full h-full flex-col justify-center items-start p-16 text-gray-800">
+                <h2 class="text-4xl font-bold text-teal-700 mb-8 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    提案目的
+                </h2>
+                <ul class="space-y-6 text-2xl list-inside">
+                    <li class="flex items-start"><span class="text-teal-500 mr-4 mt-1">●</span><div>深化企業永續文化，提升全員 ESG 意識。</div></li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-4 mt-1">●</span><div>鼓勵跨部門創意交流，激發創新動能。</div></li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-4 mt-1">●</span><div>發掘具體可行方案，推動永續發展實踐。</div></li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-4 mt-1">●</span><div>強化永續治理、環境效益與社會影響力。</div></li>
+                </ul>
+            </div>
+            
+            <!-- Slide 3: 適用對象 -->
+            <div class="slide w-full h-full flex-col justify-center items-center p-16 text-gray-800 bg-gray-50">
+                <h2 class="text-4xl font-bold text-teal-700 mb-12 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4"><users class="lucide lucide-users-round"></users><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    制度適用對象
+                </h2>
+                <div class="text-center">
+                    <p class="text-8xl font-bold text-teal-600">全體員工</p>
+                    <p class="text-2xl mt-6 text-gray-600">包含正式員工、契約人員及實習生</p>
+                    <p class="text-2xl mt-2 text-gray-600">不限部門與職級，可單獨或組隊提案</p>
+                </div>
+            </div>
+
+            <!-- Slide 4: 提案議題範疇 (ESG) -->
+            <div class="slide w-full h-full flex-col justify-center items-start p-16 text-gray-800">
+                <h2 class="text-4xl font-bold text-teal-700 mb-8 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4"><path d="M15 21v-4a2 2 0 0 0-2-2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10l-4.5-4.5A2 2 0 0 0 15 10.07Z"></path></svg>
+                    提案議題範疇 (ESG)
+                </h2>
+                <div class="grid grid-cols-3 gap-8 w-full text-lg">
+                    <div class="bg-teal-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-2xl text-teal-800 mb-4">E | 環境面</h3>
+                        <ul class="space-y-2">
+                            <li>1. 能源與碳排管理</li>
+                            <li>2. 資源循環與減廢</li>
+                            <li>3. 污染防治與環境保護</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-2xl text-blue-800 mb-4">S | 社會面</h3>
+                        <ul class="space-y-2">
+                            <li>1. 員工權益與職場環境</li>
+                            <li>2. 社區參與與公益</li>
+                            <li>3. 客戶與產品責任</li>
+                        </ul>
+                    </div>
+                    <div class="bg-indigo-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-2xl text-indigo-800 mb-4">G | 治理面</h3>
+                        <ul class="space-y-2">
+                            <li>1. 公司治理機制</li>
+                            <li>2. 法規遵循與誠信經營</li>
+                            <li>3. 風險管理與韌性提升</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5: 提案流程 -->
+            <div class="slide w-full h-full flex-col justify-center items-center p-16 text-gray-800 bg-gray-50">
+                <h2 class="text-4xl font-bold text-teal-700 mb-12 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+                    提案流程
+                </h2>
+                <div class="w-full flex justify-between items-center text-center text-sm">
+                    <div class="step flex flex-col items-center relative">
+                        <div class="bg-teal-500 text-white w-24 h-24 rounded-full flex justify-center items-center text-3xl font-bold">1</div>
+                        <p class="mt-4 font-semibold">員工提案</p>
+                        <p class="text-gray-500 w-40">填寫《永續提案表單》</p>
+                    </div>
+                    <div class="flex-grow border-t-4 border-teal-500 border-dashed -mt-16 mx-2"></div>
+                    <div class="step flex flex-col items-center">
+                        <div class="bg-teal-500 text-white w-24 h-24 rounded-full flex justify-center items-center text-3xl font-bold">2</div>
+                        <p class="mt-4 font-semibold">初步審查</p>
+                        <p class="text-gray-500 w-40">永續發展中心確認與分類</p>
+                    </div>
+                    <div class="flex-grow border-t-4 border-teal-500 border-dashed -mt-16 mx-2"></div>
+                    <div class="step flex flex-col items-center">
+                        <div class="bg-teal-500 text-white w-24 h-24 rounded-full flex justify-center items-center text-3xl font-bold">3</div>
+                        <p class="mt-4 font-semibold">評議會議</p>
+                        <p class="text-gray-500 w-40">評議小組每季審議</p>
+                    </div>
+                    <div class="flex-grow border-t-4 border-teal-500 border-dashed -mt-16 mx-2"></div>
+                    <div class="step flex flex-col items-center">
+                        <div class="bg-teal-500 text-white w-24 h-24 rounded-full flex justify-center items-center text-3xl font-bold">4</div>
+                        <p class="mt-4 font-semibold">執行導入</p>
+                        <p class="text-gray-500 w-40">權責單位推動與追蹤</p>
+                    </div>
+                    <div class="flex-grow border-t-4 border-teal-500 border-dashed -mt-16 mx-2"></div>
+                    <div class="step flex flex-col items-center">
+                        <div class="bg-teal-500 text-white w-24 h-24 rounded-full flex justify-center items-center text-3xl font-bold">5</div>
+                        <p class="mt-4 font-semibold">公告表揚</p>
+                        <p class="text-gray-500 w-40">內部公告與頒獎</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 6: 評選機制 -->
+            <div class="slide w-full h-full flex-col justify-center items-start p-16 text-gray-800">
+                <h2 class="text-4xl font-bold text-teal-700 mb-8 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    評選機制
+                </h2>
+                <div class="w-full space-y-4">
+                    <div class="flex items-center">
+                        <span class="w-1/3 text-2xl">永續貢獻度</span>
+                        <div class="w-2/3 bg-gray-200 rounded-full h-8">
+                            <div class="bg-teal-500 h-8 rounded-full text-white flex items-center justify-center" style="width: 30%;">30%</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-1/3 text-2xl">創新性與原創性</span>
+                        <div class="w-2/3 bg-gray-200 rounded-full h-8">
+                            <div class="bg-blue-500 h-8 rounded-full text-white flex items-center justify-center" style="width: 20%;">20%</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-1/3 text-2xl">實務可行性</span>
+                        <div class="w-2/3 bg-gray-200 rounded-full h-8">
+                            <div class="bg-indigo-500 h-8 rounded-full text-white flex items-center justify-center" style="width: 20%;">20%</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-1/3 text-2xl">成本效益與影響力</span>
+                        <div class="w-2/3 bg-gray-200 rounded-full h-8">
+                            <div class="bg-purple-500 h-8 rounded-full text-white flex items-center justify-center" style="width: 20%;">20%</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-1/3 text-2xl">跨部門合作與文化影響</span>
+                        <div class="w-2/3 bg-gray-200 rounded-full h-8">
+                            <div class="bg-pink-500 h-8 rounded-full text-white flex items-center justify-center" style="width: 10%;">10%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full text-right mt-4 text-gray-600 font-bold">總分 100 分</div>
+            </div>
+
+            <!-- Slide 7: 獎勵機制 -->
+            <div class="slide w-full h-full flex-col justify-center items-center p-16 text-gray-800 bg-gray-50">
+                 <h2 class="text-4xl font-bold text-teal-700 mb-10 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4"><path d="M21 16V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10"></path><path d="M11 10H5"></path><path d="M19 10h-1"></path><path d="M15 10h-1"></path><path d="m22 22-1-1-3.5-3.5"></path><path d="M2 16h12"></path><circle cx="16.5" cy="16.5" r="2.5"></circle></svg>
+                    多元獎勵機制
+                </h2>
+                <div class="grid grid-cols-2 gap-8 w-full">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-2xl text-teal-800 mb-4">金額獎勵</h3>
+                        <ul class="space-y-2 text-lg">
+                            <li><span class="font-bold text-yellow-500">金獎：</span>新臺幣 3,000 元</li>
+                            <li><span class="font-bold text-gray-400">銀獎：</span>新臺幣 2,000 元</li>
+                            <li><span class="font-bold text-orange-500">銅獎：</span>新臺幣 1,000 元</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-2xl text-teal-800 mb-4">榮譽表揚</h3>
+                        <ul class="space-y-2 text-lg">
+                           <li>內部公告、頒發榮譽證書</li>
+                           <li>於表揚大會公開表揚</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-2xl text-teal-800 mb-4">人事獎勵</h3>
+                        <ul class="space-y-2 text-lg">
+                            <li>嘉獎 / 小功 / 大功</li>
+                            <li>年終績效考核加分</li>
+                            <li>作為升遷或輪調參考</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-2xl text-teal-800 mb-4">導入加碼獎勵</h3>
+                        <ul class="space-y-2 text-lg">
+                            <li>成功導入並達標者，核發追加獎金</li>
+                            <li>主管績效加分參考</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 8: 推動策略 -->
+            <div class="slide w-full h-full flex-col justify-center items-start p-16 text-gray-800">
+                <h2 class="text-4xl font-bold text-teal-700 mb-8 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.37 3.63a2.12 2.12 0 1 1 3 3L12 16l-4 1 1-4Z"></path></svg>
+                    制度推廣與推動策略
+                </h2>
+                <div class="w-full space-y-6">
+                    <div>
+                        <h3 class="text-2xl font-bold text-teal-600 mb-2">1. 推廣階段</h3>
+                        <p class="text-xl">透過部門早會、eDM、公佈欄與內網宣傳，並辦理提案工作坊。</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-teal-600 mb-2">2. 運作階段</h3>
+                        <p class="text-xl">每季統一收件與評審，維持節奏；協同法務、人資建立可追蹤之導入流程。</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-teal-600 mb-2">3. 檢討與精進</h3>
+                        <p class="text-xl">每年底進行制度回顧與優化，評估參與度、導入率與實質成效。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 9: 預期效益 -->
+            <div class="slide w-full h-full flex-col justify-center items-center p-16 text-gray-800 bg-gray-50">
+                 <h2 class="text-4xl font-bold text-teal-700 mb-12 flex items-center">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4"><path d="M2 13a6 6 0 1 0 12 0 4 4 0 1 0-8 0 2 2 0 0 0 4 0"></path><path d="M2 13h2"></path><path d="M14 13h2"></path><path d="M8 7a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2Z"></path><path d="M8 21h8"></path><path d="M10 17v4"></path><path d="M14 17v4"></path></svg>
+                    預期效益
+                </h2>
+                <div class="grid grid-cols-2 grid-rows-2 gap-8 text-xl text-center">
+                    <div class="bg-teal-100 p-8 rounded-lg flex flex-col items-center justify-center">
+                        <p class="font-bold">提升公司內部永續意識，形塑全員參與文化。</p>
+                    </div>
+                    <div class="bg-blue-100 p-8 rounded-lg flex flex-col items-center justify-center">
+                        <p class="font-bold">增進員工對營運流程之理解與改善動能。</p>
+                    </div>
+                    <div class="bg-indigo-100 p-8 rounded-lg flex flex-col items-center justify-center">
+                        <p class="font-bold">促進部門合作，落實橫向溝通與創新實踐。</p>
+                    </div>
+                    <div class="bg-purple-100 p-8 rounded-lg flex flex-col items-center justify-center">
+                        <p class="font-bold">為永續報告書與 ESG 評比提供實績案例。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 10: 提案事項與時程 -->
+            <div class="slide w-full h-full flex-col justify-center items-start p-16 text-gray-800">
+                <h2 class="text-4xl font-bold text-teal-700 mb-8 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-4"><path d="m15.23 2.77-2.52 2.52"></path><path d="M6.16 21.84l-2.52-2.52"></path><path d="M2.77 15.23l2.52-2.52"></path><path d="M21.84 6.16l-2.52-2.52"></path><circle cx="12" cy="12" r="1"></circle><path d="M4.22 8.42l1.42 1.41"></path><path d="M18.36 14.16l1.42 1.41"></path><path d="M8.42 19.78l1.41-1.42"></path><path d="M14.16 4.22l1.41-1.42"></path><path d="m3 21 8.5-8.5"></path><path d="M12.02 3.02 3 12.04"></path></svg>
+                    提案事項 & 啟動時程
+                </h2>
+                <div class="text-2xl space-y-6">
+                    <p>1. 敬請董事長核定本制度，授權永續發展中心主責執行。</p>
+                    <p>2. 同意納入人資制度，與績效考核與獎懲制度連動。</p>
+                </div>
+                <div class="mt-12 w-full bg-teal-50 p-6 rounded-lg">
+                    <h3 class="font-bold text-3xl text-teal-800">制度啟動時程</h3>
+                    <p class="text-2xl mt-2"><span class="font-bold">啟動期：</span>2025年 第4季</p>
+                    <p class="text-2xl mt-1"><span class="font-bold">正式實施：</span>2026年起 每季實施</p>
+                </div>
+            </div>
+            
+             <!-- Slide 11: Q&A -->
+            <div class="slide w-full h-full flex-col justify-center items-center p-12 text-center bg-teal-600 text-white">
+                <h1 class="text-8xl font-bold mb-6">Q&A</h1>
+                <p class="text-3xl">敬請指教</p>
+            </div>
+
+
+        </main>
+
+        <!-- Footer with Controls and Progress Bar -->
+        <footer class="bg-gray-800 text-white p-3 flex items-center justify-between">
+            <div class="w-1/4 text-sm">
+                永續議題提案獎勵制度
+            </div>
+            <div class="w-1/2 flex items-center justify-center space-x-4">
+                <button id="prev-btn" class="p-2 rounded-full bg-gray-700 hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <div id="slide-counter" class="text-lg font-mono">1 / 11</div>
+                <button id="next-btn" class="p-2 rounded-full bg-gray-700 hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+            </div>
+            <div class="w-1/4">
+                 <!-- Progress Bar -->
+                <div class="w-full bg-gray-600 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-teal-500 h-2.5 rounded-full progress-bar-fill" style="width: 9%"></div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const slideCounter = document.getElementById('slide-counter');
+        const progressBar = document.getElementById('progress-bar');
+        
+        let currentSlide = 0;
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+            });
+            slides[index].classList.add('active');
+            
+            // Update counter and progress bar
+            slideCounter.textContent = `${index + 1} / ${totalSlides}`;
+            const progressPercentage = ((index + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+
+            // Update button states
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === totalSlides - 1;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+        
+        // Initial setup
+        showSlide(currentSlide);
+    </script>
+</body>
+</html>
