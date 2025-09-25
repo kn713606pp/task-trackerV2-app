@@ -14,6 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
+    <script src="env.js"></script> 
     <script src="firebase-config.js"></script>
     <script src="auth.js"></script>
     <script src="user-data-manager.js"></script>
@@ -503,8 +504,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query, where, getDocs, serverTimestamp, enableIndexedDbPersistence, writeBatch, Timestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         document.addEventListener('DOMContentLoaded', () => {
-            const firebaseConfig = { apiKey: "AIzaSyDDAYiLAtQKkusNSR6Yw54d39F7ruWfhv8", authDomain: "team-task-app-73ec0.firebaseapp.com", projectId: "team-task-app-73ec0", storageBucket: "team-task-app-73ec0.firebasestorage.app", messagingSenderId: "544030228623", appId: "1:544030228623:web:245b75df7fc0d4301030fa",
-  measurementId: "G-S7F86S0ZB4" };
+    const firebaseConfig = {}; // 留空，我們將從外部注入
             
             const STATUSES = { TODO: "待辦事項", HOLD: "暫緩中", COMPLETED: "已完成", DELETED: "已刪除" };
             const PRIORITIES = { '緊急': 4, '高': 3, '中': 2, '低': 1 };
