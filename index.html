@@ -641,16 +641,38 @@
     state.db = getFirestore(app);
     enableIndexedDbPersistence(state.db).catch(err => console.warn("Firebase Persistence Error:", err.message));
 
-    onAuthStateChanged(state.auth, user => {
+    onAuthStateChanged(state.auth, async user => {
         if (user && !user.isAnonymous) { // 確認是真人使用者
-            state.userName = user.displayName || '使用者';
+    state.userName = user.displayName || '使用者';
 
-            const userInfoContainer = document.querySelector('.user-info');
-            if(user.photoURL) {
-                userInfoContainer.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" class="w-8 h-8 rounded-full shadow-sm"><span class="font-semibold text-slate-700">${user.displayName}</span>`;
-            } else {
-                 userInfoContainer.innerHTML = `<span class="font-semibold text-slate-700">${user.displayName}</span>`;
-            }
+    const userInfoContainer = document.querySelector('.user-info');
+    if (user.photoURL) {
+        userInfoContainer.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" class="w-8 h-8 rounded-full shadow-sm"><span class="font-semibold text-slate-700">${user.displayName}</span>`;
+    } else {
+        userInfoContainer.innerHTML = `<span class="font-semibold text-slate-700">${user.displayName}</span>`;
+    }
+
+    // --- 在這裡開始貼上/加入 ---
+    // 取得使用者角色
+    const userDocRef = doc(state.db, "users", user.uid);
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (userDocSnap.exists() && userDocSnap.data().role === 'admin') {
+        state.userRole = 'admin';
+        console.log("使用者角色：Admin");
+    } else {
+        state.userRole = 'member';
+        console.log("使用者角色：Member");
+
+        // 如果使用者文件不存在，可以順便幫他建立一個
+        if (!userDocSnap.exists()) {
+            await setDoc(userDocRef, {
+                displayName: user.displayName,
+                email: user.email,
+                role: 'member'
+            });
+        }
+    }
 
             bootstrapMainApp();
         } else {
@@ -939,10 +961,10 @@ window.authManager = authManager;
             }
             
             function listenForTasks(callback) { 
-                const tasksCollection = collection(state.db, 'tasks');
+                const tasksQuery = query(collection(state.db, 'tasks'), where("creatorUid", "==", state.auth.currentUser.uid));
                 if (unsubscribeTasks) unsubscribeTasks(); 
                 let isFirstLoad = true;
-                unsubscribeTasks = onSnapshot(tasksCollection, (snapshot) => { 
+                unsubscribeTasks = onSnapshot(tasksQuery, (snapshot) => { 
                     const currentlyExpanded = new Set();
                     document.querySelectorAll('.task-card.expanded').forEach(card => currentlyExpanded.add(card.dataset.id));
 
@@ -1626,7 +1648,8 @@ window.authManager = authManager;
                     dueDate: dom.addTaskDueDate.value, 
                     createdAt: serverTimestamp(), 
                     category: dom.addTaskDepartment.value, 
-                    createdBy: state.userName, 
+                    creatorUid: state.auth.currentUser.uid, // 新的、安全的作法，使用 uid
+                    creatorName: state.userName, // 同時也記錄名稱，方便顯示 
                     status: STATUSES.TODO, 
                     order: newOrder, 
                     imageData: state.currentImageBase64, 
