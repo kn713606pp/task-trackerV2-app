@@ -687,24 +687,25 @@ authManager.signOut = () => {
 window.authManager = authManager;
 
             function bootstrapMainApp() { 
-                dom.loadingOverlay.style.display = 'none';
-                dom.welcomeOverlay.classList.add('visible'); 
-                populateSelects(); 
-                
-                setTimeout(() => { 
-                    dom.welcomeOverlay.classList.remove('visible'); 
-                    listenForDepartments(); 
-                    listenForTasks(() => {
-                        checkAndShowDueTasks();
-       
-                     });
-                    initializeDragAndDrop(); 
-                    initializeDepartmentDragAndDrop();
-                    bindEventListeners();
-                    updateSortButtonsUI(); 
-     
-               }, 2000);
-            }
+    dom.loadingOverlay.style.display = 'none';
+    dom.welcomeOverlay.classList.add('visible'); 
+    populateSelects(); 
+    
+    setTimeout(() => { 
+        dom.welcomeOverlay.classList.remove('visible'); 
+        
+        showMainApp(); // <-- 這是我之前遺漏的、最關鍵的一行！
+
+        listenForDepartments(); 
+        listenForTasks(() => {
+            checkAndShowDueTasks();
+         });
+        initializeDragAndDrop(); 
+        initializeDepartmentDragAndDrop();
+        bindEventListeners();
+        updateSortButtonsUI(); 
+   }, 2000);
+}
 
             function showMainApp() {
                 dom.appContainer.classList.remove('hidden');
