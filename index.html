@@ -493,11 +493,16 @@
         <span id="undo-message" class="text-sm"></span>
         <button id="undo-btn" class="ml-4 text-sm font-semibold text-indigo-300 hover:text-indigo-200">復原</button>
     </div>
-
+<script>
+  const authManager = {
+    signInWithGoogle: () => console.error("authManager.signInWithGoogle not initialized"),
+    signOut: () => console.error("authManager.signOut not initialized"),
+  };
+</script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, query, where, getDocs, serverTimestamp, enableIndexedDbPersistence, writeBatch, Timestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         document.addEventListener('DOMContentLoaded', () => {
             
@@ -612,10 +617,75 @@
                 copyAllRemindersBtn: document.getElementById('copy-all-reminders-btn'),
                 dueTasksStatusMsg: document.getElementById('due-tasks-status-msg'),
             };
-            function startApp() { if (!firebaseConfig.apiKey.startsWith("AIza")) { showError("您尚未設定 Firebase！"); return; } const app = initializeApp(firebaseConfig); state.auth = getAuth(app); state.db = getFirestore(app);
-            enableIndexedDbPersistence(state.db).catch(err => console.warn("Firebase Persistence Error:", err.message)); onAuthStateChanged(state.auth, user => { if (user) { bootstrapMainApp(); } else { signInAnonymously(state.auth).catch(error => { console.error("匿名登入失敗:", error); showError(`Firebase 認證失敗: ${error.message}`); }); } });
+            function startApp() {
+    if (!firebaseConfig.apiKey.startsWith("AIza")) {
+        showError("您尚未設定 Firebase！");
+        return;
+    }
+    const app = initializeApp(firebaseConfig);
+    state.auth = getAuth(app);
+    state.db = getFirestore(app);
+    enableIndexedDbPersistence(state.db).catch(err => console.warn("Firebase Persistence Error:", err.message));
+
+    onAuthStateChanged(state.auth, user => {
+        if (user && !user.isAnonymous) { // 確認是真人使用者
+            state.userName = user.displayName || '使用者';
+
+            const userInfoContainer = document.querySelector('.user-info');
+            if(user.photoURL) {
+                userInfoContainer.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" class="w-8 h-8 rounded-full shadow-sm"><span class="font-semibold text-slate-700">${user.displayName}</span>`;
+            } else {
+                 userInfoContainer.innerHTML = `<span class="font-semibold text-slate-700">${user.displayName}</span>`;
             }
+
+            bootstrapMainApp();
+        } else {
+            state.userName = '訪客';
+
+            document.querySelector('.guest-only').style.display = 'flex';
+            document.querySelectorAll('.auth-required').forEach(el => el.style.display = 'none');
+
+            dom.loadingOverlay.style.display = 'flex';
+            document.querySelector('#loading-overlay .spinner').style.display = 'none';
+
+            dom.appContainer.classList.add('hidden');
+            dom.appContainer.classList.remove('opacity-100');
+
+            if(unsubscribeTasks) unsubscribeTasks();
+            if(unsubscribeDepartments) unsubscribeDepartments();
+
+            console.log("使用者未登入，請登入以使用應用程式。");
+        }
+    });
+}
             
+// --- NEW: Authentication function implementations ---
+authManager.signInWithGoogle = () => {
+    const provider = new GoogleAuthProvider();
+    const spinner = document.querySelector('#loading-overlay .spinner');
+    const loginBtn = document.querySelector('#loading-overlay .google-login-btn');
+    spinner.style.display = 'block';
+    loginBtn.style.display = 'none';
+
+    signInWithPopup(state.auth, provider)
+        .then((result) => {
+            console.log("Google 登入成功:", result.user);
+        })
+        .catch((error) => {
+            console.error("Google 登入失敗:", error);
+            showError(`Google 登入失敗: ${error.message}`);
+            spinner.style.display = 'none';
+            loginBtn.style.display = 'flex';
+        });
+};
+
+authManager.signOut = () => {
+    signOut(state.auth).catch((error) => {
+        console.error("登出失敗:", error);
+    });
+};
+window.authManager = authManager;
+
             function bootstrapMainApp() { 
                 dom.loadingOverlay.style.display = 'none';
                 dom.welcomeOverlay.classList.add('visible'); 
@@ -1109,7 +1179,7 @@
                 const card = document.createElement('div');
                 card.dataset.id = task.id;
 
-                const backgroundClass = (task.isFromCEO || task.category === '董總交辦') ? 'bg-rose-50' : 'bg-white';
+                const backgroundClass = (task.isFromCEO || task.category === '董總交辦') ? 'bg-red-100' : 'bg-white';
                 card.className = `task-card ${backgroundClass} p-4 rounded-lg shadow-sm border-l-4 ${getDueDateColorClass(task)} flex flex-col`;
                 if (task.status === STATUSES.COMPLETED) {
                     card.classList.add('opacity-70');
