@@ -2081,6 +2081,7 @@ function handleSubtaskForms(e) {
                     status: task.status || STATUSES.TODO,
                     category: finalDepartment, 
                     assignee: task.assignee || '未指派',
+                    creatorUid: state.auth.currentUser.uid, // <<-- 新增這一行
                     createdBy: task.createdBy || state.userName, 
                     createdAt: taskTimestamp,
                     dueDate: task.dueDate || null, 
