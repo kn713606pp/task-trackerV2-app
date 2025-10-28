@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>永續價值鏈簡報大綱</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自訂字體與基本樣式 */
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+        
+        /* 預設的捲動檢視模式 */
+        .slide {
+            background-color: white;
+            padding: 2.5rem; /* 增加內邊距 */
+            border-radius: 0.75rem; /* 圓角 */
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* 陰影 */
+            margin-bottom: 2.5rem; /* 投影片間距 */
+            max-width: 1024px; /* 設定最大寬度 */
+            margin-left: auto;
+            margin-right: auto;
+            transition: all 0.3s ease; /* 加入過場動畫 */
+        }
+        /* 標題樣式 */
+        .slide-title {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 700; /* 加粗 */
+            color: #047857; /* 綠色 */
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #D1FAE5; /* 淺綠色底線 */
+            padding-bottom: 0.5rem;
+        }
+        .slide-subtitle {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 600;
+            color: #111827; /* 深灰色 */
+            margin-bottom: 1rem;
+            margin-top: 1.5rem;
+        }
+        /* 效益區塊 */
+        .benefit-box {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        .benefit-box-green {
+            background-color: #F0FDF4; /* 淺綠 */
+            border-left: 5px solid #22C55E; /* 綠色邊框 */
+        }
+        .benefit-box-blue {
+            background-color: #EFF6FF; /* 淺藍 */
+            border-left: 5px solid #3B82F6; /* 藍色邊框 */
+        }
+
+        /* --- 新增：簡報模式 (全螢幕) 樣式 --- */
+        
+        /* 當 body 進入簡報模式時 */
+        body.presentation-mode {
+            overflow: hidden; /* 隱藏捲軸 */
+        }
+
+        /* 簡報模式下的投影片 */
+        body.presentation-mode .slide {
+            display: none; /* 預設隱藏所有投影片 */
+            position: fixed; /* 佔滿全螢幕 */
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            border-radius: 0; /* 移除圓角 */
+            box-shadow: none; /* 移除陰影 */
+            /* 使用 flex 讓內容垂直置中 */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem; /* 全螢幕時內距加大 */
+        }
+
+        /* 簡報模式下，只顯示 .active 的投影片 */
+        body.presentation-mode .slide.active {
+            display: flex;
+        }
+
+        /* 隱藏全螢幕按鈕 (因為 ESC 即可退出) */
+        body.presentation-mode #fullscreen-btn {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+
+    <main class="w-full">
+
+        <!-- Slide 1: 封面頁 -->
+        <section class="slide text-center">
+            <h1 class="text-5xl font-bold text-green-700">O'right 永續之美</h1>
+            <p class="text-3xl text-gray-700 mt-3">永續圈：價值鏈改造專案</p>
+        </section>
+
+        <!-- Slide 2: 團隊介紹與目標 -->
+        <section class="slide">
+            <h2 class="slide-title">價值鏈改造小組</h2>
+            
+            <h3 class="slide-subtitle">目標</h3>
+            <p class="text-lg text-gray-700 leading-relaxed">
+                從產品設計、開發、生產製造到供應鏈整合，進行全面的<strong>減廢、減碳、減塑、省水</strong>優化。透過供應鏈夥伴協作，升級企業價值鏈，實現經濟效益與環境永續並行，打造更具市場競爭力的綠色產品與品牌形象。
+            </p>
+
+            <h3 class="slide-subtitle">五大提案方向</h3>
+            <ul class="list-disc list-inside text-lg text-gray-700 space-y-2 mt-4">
+                <li>永續產品設計與開發</li>
+                <li>供應鏈與生產流程改造</li>
+                <li>營運與數據化管理</li>
+                <li>內外部協作與推動</li>
+                <li>績效追蹤與持續改善</li>
+            </ul>
+        </section>
+
+        <!-- Slide 3: 取消/暫緩項目 -->
+        <section class="slide">
+            <h2 class="slide-title">永續提案 — 項目檢討</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">類別</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">提案項目</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">取消/暫緩原因</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">後續建議</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">減廢/減塑</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">物流導入膨切機取代氣泡袋</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">粉塵、靜電、品質不穩、技術未成熟</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">暫停導入，待技術改善後評估</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">省水</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">洗髮皂 (粉/錠) 開發</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">洗感及穩定性不佳，產品性能不符預期</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">乾洗噴霧 (Bio來源) 作為替代方案 (Q4 上市)</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-yellow-600">減塑</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">精油瓶塑膠蓋改鋁蓋</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">組織異動與供應鏈調整致時程延誤</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">具高可回收性，保留為 2026 年推動項目</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Slide 4: 議題一：減廢 -->
+        <section class="slide">
+            <h2 class="slide-title">永續議題 (1): 減廢 (Garbage Reduction)</h2>
+            <h3 class="slide-subtitle">議題：包材不良品報廢處理</h3>
+            <ul class="list-disc list-inside text-lg text-gray-700 space-y-2">
+                <li><strong>問題：</strong> 玻璃瓶不良品(刮痕、破裂等)暫置倉庫，造成堆積與安全疑慮。紙箱回收效率不一。</li>
+                <li><strong>決議：</strong> 建立玻璃瓶(春池)與紙箱紙盒的長期配合回收機制，並依流程執行重複利用。</li>
+            </ul>
+            
+            <h3 class="slide-subtitle">2024 執行效益 (源頭減量)</h3>
+            <div class="benefit-box benefit-box-green">
+                <p class="text-xl font-semibold text-gray-800">
+                    透過即時回收與流向追蹤機制，避免現場囤積與混料風險，提升作業安全與環保效益，達成源頭減量 <strong class="text-green-600 text-2xl">3600.86 KG</strong>。
+                </p>
+            </div>
+        </section>
+
+        <!-- Slide 5: 議題二：減塑 -->
+        <section class="slide">
+            <h2 class="slide-title">永續議題 (2): 減塑 & 包材優化</h2>
+            <h3 class="slide-subtitle">議題：精油瓶/霜瓶塑膠蓋改鋁蓋</h3>
+            <ul class="list-disc list-inside text-lg text-gray-700 space-y-2">
+                <li><strong>目標：</strong> 現行塑膠蓋不易回收，改採高可回收性的鋁製瓶蓋，推動循環再利用設計。</li>
+                <li><strong>決議：</strong> 新生產批次全面改為鋁蓋材質。</li>
+                <li><strong>現況：</strong> 因組織人員異動及專案單位調整，開發與採購流程延後，試樣與驗證尚未啟動。</li>
+            </ul>
+
+            <div class="benefit-box bg-yellow-50 border-l-4 border-yellow-400 mt-6">
+                <p class="text-xl font-semibold text-yellow-800">
+                    決議：保留為中期推動項目 (2026 年度)
+                </p>
+            </div>
+        </section>
+
+        <!-- Slide 6: 議題三：減碳 -->
+        <section class="slide">
+            <h2 class="slide-title">永續議題 (3): 減碳 (Low-Carbon Product Redesign)</h2>
+            <h3 class="slide-subtitle">議題：按壓給皂機改款減碳專案</h3>
+            <ul class="list-disc list-inside text-lg text-gray-700 space-y-2">
+                <li><strong>目標：</strong> 落實產品碳足跡管理，以給皂機取代飯店一次性 50mL PET 瓶。</li>
+                <li><strong>設計：</strong> 採用無內膽設計 (可用補充瓶直接倒入)，減少房務人員補充次數。</li>
+                <li><strong>規模：</strong> 目標 10,000 房間 (首批 3,000 pcs)。</li>
+            </ul>
+
+            <h3 class="slide-subtitle">減碳效益 (試算)</h3>
+            <div class="benefit-box benefit-box-green">
+                <p class="text-lg text-gray-700">每間房年度 PET 使用碳排量： <strong>9.13 kg CO₂e / 年</strong></p>
+                <p class="text-xl font-semibold text-gray-800 mt-2">
+                    若使用 3,000 個給皂機取代：<br>
+                    每年可減少 <strong class="text-green-600 text-3xl">27,390 kg CO₂e</strong> (約 27.4 公噸 CO₂e)
+                </p>
+            </div>
+        </section>
+
+        <!-- Slide 7: 議題四：省水 -->
+        <section class="slide">
+            <h2 class="slide-title">永續議題 (4): 省水 (Water Efficiency)</h2>
+            <h3 class="slide-subtitle">議題：洗髮精產品「省水性能」驗證計畫</h3>
+            <ul class="list-disc list-inside text-lg text-gray-700 space-y-2">
+                <li><strong>目標：</strong> 驗證產品在實際使用情境中 (起泡、沖洗時間) の節水成效。</li>
+                <li><strong>測試 (單次用量 1.1g)：</strong>
+                    <ul class="list-decimal list-inside ml-6 mt-1">
+                        <li>咖啡因洗髮精：用水 <strong>580 g</strong></li>
+                        <li>競品：用水 <strong>914 g</strong></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 class="slide-subtitle">省水效益 (試算)</h3>
+            <div class="benefit-box benefit-box-blue">
+                <p class="text-lg text-gray-700">根據 2025 年 1-9 月咖啡因洗髮精內料收量 (29,000 Kg) 推估：</p>
+                <p class="text-xl font-semibold text-gray-800 mt-2">
+                    使用咖啡因洗髮精，每年約可省水：<br>
+                    <strong class="text-blue-600 text-3xl">11,740 公噸</strong>
+                </p>
+            </div>
+        </section>
+
+        <!-- Slide 8: 結論摘要 -->
+        <section class="slide">
+            <h2 class="slide-title">結論摘要：四大永續議題</h2>
+            <div class="space-y-6 mt-6">
+                <!-- 減廢 -->
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 h-12 w-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-2xl font-bold">1</div>
+                    <div class="ml-4">
+                        <h4 class="text-xl font-semibold text-gray-900">減廢：玻璃瓶不良品回收制度</h4>
+                        <p class="text-lg text-gray-700 mt-1">建立即時回收與流向追蹤機制，達成源頭減量 <strong>3600.86 KG</strong>。</p>
+                    </div>
+                </div>
+                <!-- 減塑 -->
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 h-12 w-12 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center text-2xl font-bold">2</div>
+                    <div class="ml-4">
+                        <h4 class="text-xl font-semibold text-gray-900">減塑：精油瓶/霜瓶鋁蓋替換專案</h4>
+                        <p class="text-lg text-gray-700 mt-1">以鋁蓋取代塑膠蓋，提升包材回收性，保留為 2026 年推動項目。</p>
+                    </div>
+                </div>
+                <!-- 減碳 -->
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 h-12 w-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-2xl font-bold">3</div>
+                    <div class="ml-4">
+                        <h4 class="text-xl font-semibold text-gray-900">減碳：按壓給皂機改款設計</h4>
+                        <p class="text-lg text-gray-700 mt-1">以給皂機取代飯店一次性 PET 瓶，每年可減少約 <strong>27.4 公噸 CO₂e</strong>。</p>
+                    </div>
+                </div>
+                <!-- 省水 -->
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 h-12 w-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-2xl font-bold">4</th>
+                    <div class="ml-4">
+                        <h4 class="text-xl font-semibold text-gray-900">省水：洗髮精品省水性能驗證</h4>
+                        <p class="text-lg text-gray-700 mt-1">導入產品使用階段節水測試，以咖啡因洗髮精為例，每年省水約 <strong>11,740 公噸</strong>。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 9: 結尾頁 -->
+        <section class="slide bg-green-800 text-white text-center">
+            <h2 class="text-5xl font-bold">Together Greener</h2>
+            <p class="text-3xl mt-3">歐萊德與你一起讓世界變好</p>
+            <p class="text-4xl mt-6">Zero CO2 IMPACT</p>
+        </section>
+
+    </main>
+
+    <!-- 新增：錯誤訊息提示框 -->
+    <div id="error-toast" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-[100] bg-red-600 text-white p-4 rounded-lg shadow-lg text-center max-w-md"
+        style="white-space: pre-wrap;">
+        <!-- 內容將由 JS 填入 -->
+    </div>
+
+    <!-- 全螢幕按鈕 -->
+    <button id="fullscreen-btn" title="進入/退出全螢幕簡報"
+        class="fixed bottom-6 right-6 z-50 p-3 bg-green-700 text-white rounded-full shadow-lg hover:bg-green-800 transition-colors duration-200">
+        <!-- 進入全螢幕 SVG Icon -->
+        <svg id="icon-enter" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 4l-5-5" />
+        </svg>
+        <!-- 退出全螢幕 SVG Icon (預設隱藏) -->
+        <svg id="icon-exit" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h5v5h-5V4zM4 9v-5h5v5H4zm11 11v-5h5v5h-5zM4 15v5h5v-5H4z" />
+        </svg>
+    </button>
+
+    <!-- 簡報模式 JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fsBtn = document.getElementById('fullscreen-btn');
+            const iconEnter = document.getElementById('icon-enter');
+            const iconExit = document.getElementById('icon-exit');
+            const slides = document.querySelectorAll('.slide');
+            const errorToast = document.getElementById('error-toast'); // 獲取提示框
+            let currentSlide = 0;
+            let toastTimer; // 用於儲存計時器
+
+            // 新增：顯示錯誤提示
+            function showErrorToast(message) {
+                // 清除上一個計時器（如果有的話）
+                if (toastTimer) {
+                    clearTimeout(toastTimer);
+                }
+                errorToast.textContent = message;
+                errorToast.classList.remove('hidden');
+                
+                // 5 秒後自動隱藏
+                toastTimer = setTimeout(() => {
+                    errorToast.classList.add('hidden');
+                }, 5000);
+            }
+
+            // 顯示特定投影片
+            function showSlide(index) {
+                slides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === index);
+                });
+            }
+
+            // 處理鍵盤事件
+            function handleKeydown(e) {
+                if (!document.fullscreenElement) return;
+
+                switch (e.key) {
+                    case 'ArrowRight':
+                    case ' ': // 空白鍵
+                    case 'PageDown':
+                        e.preventDefault();
+                        if (currentSlide < slides.length - 1) {
+                            currentSlide++;
+                            showSlide(currentSlide);
+                        }
+                        break;
+                    case 'ArrowLeft':
+                    case 'PageUp':
+                        e.preventDefault();
+                        if (currentSlide > 0) {
+                            currentSlide--;
+                            showSlide(currentSlide);
+                        }
+                        break;
+                    case 'Escape':
+                        // 瀏覽器會自動處理退出全螢幕
+                        break;
+                }
+            }
+
+            // 切換全螢幕
+            fsBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        // 保留控制台錯誤日誌
+                        console.error(`無法進入全螢幕模式: ${err.message} (${err.name})`);
+                        // 顯示對用戶友好的提示
+                        showErrorToast(`無法進入全螢幕模式。\n您的瀏覽環境（可能在 iframe 中）不支援此功能。`);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            });
+
+            // 監聽全螢幕狀態變化
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement) {
+                    // 進入全螢幕
+                    document.body.classList.add('presentation-mode');
+                    iconEnter.classList.add('hidden');
+                    iconExit.classList.remove('hidden');
+                    currentSlide = 0; // 從第一張開始
+                    showSlide(currentSlide);
+                    document.addEventListener('keydown', handleKeydown);
+                } else {
+                    // 退出全螢幕
+                    document.body.classList.remove('presentation-mode');
+                    iconEnter.classList.remove('hidden');
+                    iconExit.classList.add('hidden');
+                    // 移除 active 狀態，恢復正常捲動
+                    slides.forEach(slide => slide.classList.remove('active'));
+                    document.removeEventListener('keydown', handleKeydown);
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
+
