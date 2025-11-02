@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行政管理中心｜三年務實行動計劃</title>
+    <style>
+        /* --- 基礎與佈局 --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* 隱藏瀏覽器滾動條 */
+            font-family: 'Microsoft JhengHei', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #000;
+        }
+
+        .deck-container {
+            height: 100dvh; /* 100% 視窗高度 */
+            width: 100vw; /* 100% 視窗寬度 */
+            overflow-y: scroll; /* 允許垂直滾動 (觸發snapping) */
+            scroll-snap-type: y mandatory; /* Y 軸強制貼齊 */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .slide {
+            height: 100dvh; /* 每張投影片佔滿螢幕 */
+            width: 100%;
+            scroll-snap-align: start; /* 從頂部開始貼齊 */
+            box-sizing: border-box;
+            padding: 0; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden; 
+        }
+        
+        /* 內部滾動容器 */
+        .slide-content-scroller {
+            height: 100%;
+            width: 100%;
+            overflow-y: auto; /* [關鍵] 如果內容溢出，則此容器滾動 */
+            padding: 60px 80px; 
+            box-sizing: border-box; 
+        }
+
+        /* --- 投影片配色 --- */
+        #slide-1 { background-color: #004a93; color: white; }
+        #slide-2 { background-color: #ffffff; color: #333; }
+        #slide-3 { background-color: #f4f7f6; color: #333; }
+        #slide-4 { background-color: #ffffff; color: #333; }
+        #slide-5 { background-color: #34495e; color: white; }
+
+        /* 封面頁與願景頁的特殊置中 */
+        #slide-1, #slide-5 {
+            padding: 60px 80px;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* --- 內容樣式 --- */
+        h1 { font-size: 3.5em; margin: 0; }
+        h2 { font-size: 2em; font-weight: 300; opacity: 0.9; margin: 10px 0 0 0; }
+        h3 {
+            font-size: 2.5em;
+            color: #004a93;
+            border-bottom: 3px solid #f39c12;
+            padding-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+        /* 願景頁的H3 */
+        #slide-5 h3 {
+            color: white;
+            border-color: #f39c12;
+        }
+        #slide-5 p {
+            font-size: 1.8em;
+            line-height: 1.7;
+            text-align: center;
+        }
+
+        /* 滾動提示 */
+        .scroll-hint {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 1.1em;
+            opacity: 0.8;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translate(-50%, 0); }
+            40% { transform: translate(-50%, -15px); }
+            60% { transform: translate(-50%, -5px); }
+        }
+
+        /* --- 收納/展開 樣式 --- */
+        details {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        details[open] {
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        summary {
+            font-size: 1.6em;
+            font-weight: 600;
+            color: #d35400; /* 深橘色 */
+            padding: 20px 25px;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        summary::-webkit-details-marker { display: none; }
+        
+        summary::after {
+            content: '＋';
+            font-size: 1.5em;
+            color: #004a93;
+            transition: transform 0.2s ease-in-out;
+        }
+        details[open] summary::after {
+            content: '－';
+        }
+        
+        .details-content {
+            padding: 0 25px 25px 45px;
+        }
+        .details-content ul { list-style-type: none; padding-left: 0; margin-top: 10px; }
+        .details-content li {
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            line-height: 1.7;
+        }
+        .details-content li strong { color: #004a93; font-weight: 600; }
+        .details-content li::before {
+            position: absolute;
+            left: 0;
+            top: 1px;
+            font-size: 1.2em;
+        }
+        .details-content li.action::before { content: '🚀'; }
+        .details-content li.ai::before { content: '💡'; }
+
+        /* --- 全螢幕按鈕 --- */
+        #fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 10px 18px;
+            font-size: 1em;
+            background-color: #fff;
+            color: #004a93;
+            border: 2px solid #004a93;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+        #fullscreen-btn:hover { background-color: #004a93; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <button id="fullscreen-btn">進入全螢幕</button>
+
+    <div class="deck-container">
+
+        <div class="slide" id="slide-1">
+            <h1>行政管理中心</h1>
+            <h2>未來三年務實行動計劃 (AI 轉型)</h2>
+            <div class="scroll-hint">
+                <span>(請用滑鼠滾輪向下捲動)</span>
+            </div>
+        </div>
+
+        <div class="slide" id="slide-5">
+            <h3 style="color: white; border-color: #f39c12;">五年願景 (白話版)</h3>
+            <p>
+                <strong>「我們要從『救火隊』變成『預報站』。<br>利用 AI 幫我們提早『看見』風險，<br>讓法務、環安、總務不再是被動的後勤，<br>而是主動幫公司踩剎車、省成本、避開麻煩的<br>聰明管家。」</strong>
+            </p>
+        </div>
+
+        <div class="slide" id="slide-2">
+            <div class="slide-content-scroller"> <h3>大事一：把「紙本」變「數據」，讓 AI 有東西吃</h3>
+                
+                <details>
+                    <summary>專案 1：法務合約「電子化」 (第一年)</summary>
+                    <div class="details-content">
+                        <ul>
+                            <li class="action"><strong>行動：</strong> 導入「合約管理系統 (CLM)」。所有新舊合約全部掃描上傳。</li>
+                            <li class="ai"><strong>AI 應用：</strong> 採購 AI 輔助審閱工具。AI 自動標出「高風險條款」（如賠償、付款週期），法務再精準複核。</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>專案 2：環安衛「數據化」 (第一年)</summary>
+                    <div class="details-content">
+                        <ul>
+                            <li class="action"><strong>行動：</strong> 所有的「工安巡檢表」、「環保紀錄」全部改成用平板或 APP 填報，數據即時進資料庫。</li>
+                            <li class="ai"><strong>AI 應用：</strong> 數據是「大事二」中設備預警的基礎。</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>專案 3：總務「自動化」 (第二年)</summary>
+                    <div class="details-content">
+                        <ul>
+                            <li class="action"><strong>行動：</strong> 導入流程機器人 (RPA)。</li>
+                            <li classai"><strong>AI 應用：</strong> 找出 3 個最浪費人力的流程（如：結算水電費、比對採購單），讓機器人去跑，釋放人力。</li>
+                        </ul>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <div class="slide" id="slide-3">
+            <div class="slide-content-scroller"> <h3>大事二：裝上「鷹眼」，主動抓出風險</h3>
+
+                <details>
+                    <summary>專案 4：職安衛「AI 影像監控」 (第一年)</summary>
+                    <div class="details-content">
+                        <ul>
+                            <li class="action"><strong>行動：</strong> 在廠區的關鍵危險區（化學品區、堆高機通道）加裝 AI 攝影機。</li>
+                            <li classai"><strong>AI 應用：</strong> 系統自動辨識「有人沒戴安全帽」、「有人闖入危險區」。一抓到，立刻發警報給現場主管和職安衛。</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>專案 5：能設環安「設備預警」 (第二年)</summary>
+                    <div class="details-content">
+                        <ul>
+                            <li class="action"><strong>行動：</strong> 針對「最不能停」的關鍵設備（如廢水馬達）加裝震動或溫度感測器 (IoT)。</li>
+                            <li class="ai"><strong>AI 應用：</strong> AI 學習正常數據，在設備「快要壞」之前就跳出警報，通知能設部去保養，避免產線停機。</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>專案 6：法務「法規爬蟲」 (第二年)</summary>
+                    <div class="details-content">
+                        <ul>
+                            <li class="action"><strong>行動：</strong> 建立（或購買）AI 爬蟲服務，自動監測「原料來源國」和「產品銷售國」的政府網站。</li>
+                            <li class="ai"><strong>AI 應用：</strong> 只要有新法規公告，AI 自動抓取、翻譯、發送警報給法務和研發，確保我們不會意外違規。</li>
+                        </ul>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <div class="slide" id="slide-4">
+            <div class="slide-content-scroller"> <h3>大事三：打造「服務台」，讓全公司有感</h3>
+
+                <details>
+                    <summary>專案 7：建立「公司內部服務網」 (第二年)</summary>
+                    <div class="details-content">
+                        <ul>
+                            <li class="action"><strong>行動：</strong> 建立統一線上平台。同仁要「法律諮詢」、「總務採購」、「廠區報修」，全部到這裡填單。</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>專案 8：導入「AI 客服機器人」 (第三年)</summary>
+                    <div class="details-content">
+                        <ul>
+                            <li class="action"><strong>行動：</strong> 在服務網上，裝一個 Chatbot。</li>
+                            <li class="ai"><strong>AI 應用：</strong> 教會它回答前 50 個常見問題（如：特休怎麼算？合約用印流程？），目標是擋掉 30% 的重複性諮詢電話。</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>專案 9：法務協同研發「專利分析」 (第三年)</summary>
+                    <div class="details-content">
+                        <ul>
+                            <li class="action"><strong>行動：</strong> 法務部要主動介入研發前端。</li>
+                            <li class="ai"><strong>AI 應用：</strong> 利用 AI 專利分析工具，幫研發中心畫出「專利地圖」，告訴他們哪裡是「專利空白區」，用 IP 保護研發成果。</li>
+                        </ul>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+    </div> <script>
+        // --- 全螢幕按鈕邏輯 ---
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const docEl = document.documentElement;
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                docEl.requestFullscreen().catch(err => {
+                    alert(`錯誤：無法進入全螢幕模式: ${err.message} (${err.name})`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fullscreenBtn.textContent = '離開全螢幕';
+            } else {
+                fullscreenBtn.textContent = '進入全螢幕';
+            }
+        });
+
+        // --- [新] 智慧展開/收合邏輯 (已修復) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const allDetailsGroups = document.querySelectorAll('.slide-content-scroller');
+
+            allDetailsGroups.forEach(scroller => {
+                const allDetailsInScroller = scroller.querySelectorAll('details');
+                
+                // [修復] 建立一個旗標 (flag) 來防止程式觸發的 toggle 事件造成無窮迴圈
+                let isProgrammaticToggle = false;
+
+                allDetailsInScroller.forEach(details => {
+                    details.addEventListener('toggle', (event) => {
+                        
+                        // [修復] 如果這個 toggle 是由我們的程式碼觸發的，則直接跳過，不做任何事
+                        if (isProgrammaticToggle) {
+                            return; 
+                        }
+
+                        // 這是由使用者「手動」觸發的 toggle
+                        const targetDetails = event.target;
+
+                        // [修復] 標記 "現在開始，接下來的 changes 都是程式觸發的"
+                        isProgrammaticToggle = true;
+
+                        if (targetDetails.open) {
+                            // --- 情境：項目被「開啟」 ---
+
+                            // 1. 暫時打開「所有」項目，來檢查總高度
+                            let otherDetailsToRevert = [];
+                            allDetailsInScroller.forEach(d => {
+                                if (d !== targetDetails && !d.open) {
+                                    d.setAttribute('open', ''); // 暫時打開
+                                    otherDetailsToRevert.push(d);
+                                }
+                            });
+
+                            // 2. 檢查是否溢出 (scrollHeight 是內容總高, clientHeight 是可視高)
+                            const overflows = scroller.scrollHeight > scroller.clientHeight;
+
+                            // 3. 恢復原狀：把剛剛暫時打開的關回去
+                            otherDetailsToRevert.forEach(d => {
+                                d.removeAttribute('open');
+                            });
+
+                            // 4. 根據是否溢出來決定最終動作
+                            if (!overflows) {
+                                // [不溢出] -> 全部打開
+                                allDetailsInScroller.forEach(d => {
+                                    d.setAttribute('open', '');
+                                });
+                            }
+                            // 如果 [溢出] -> 則不執行任何動作，
+                            // 保持「僅開啟用戶點擊的這一個」的預設行為。
+
+                        } else {
+                            // --- 情境：項目被「關閉」 ---
+                            const anyOtherOpen = Array.from(allDetailsInScroller).some(
+                                d => d !== targetDetails && d.open
+                            );
+                            
+                            if (anyOtherOpen) {
+                                // [簡易邏輯]：只要關閉一個，就全部關閉
+                                allDetailsInScroller.forEach(d => {
+                                    d.removeAttribute('open');
+                                });
+                            }
+                        }
+
+                        // [修復] 在所有程式碼都執行完畢後，
+                        // 使用 setTimeout(0) 將旗標重設為 false。
+                        // 這能確保所有由這段程式碼觸發的同步 toggle 事件都 "被忽略" 完畢，
+                        // 然後才重新開放讓「使用者的下一次點擊」能被偵測。
+                        setTimeout(() => {
+                            isProgrammaticToggle = false;
+                        }, 0);
+                    });
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>

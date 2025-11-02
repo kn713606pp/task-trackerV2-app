@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QMC 策略轉型簡報 (v2)</title>
+    <style>
+        /* --- 基礎與滾動設定 --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* 隱藏 body 滾動條，由 .deck 處理 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            background-color: #f0f2f5;
+        }
+
+        .deck {
+            height: 100vh; /* 佔滿整個視窗高度 */
+            overflow-y: scroll; /* 簡報容器本身可以滾動 */
+            scroll-snap-type: y mandatory; /* 垂直強制吸附 */
+            scroll-behavior: smooth; /* 平滑滾動 */
+        }
+
+        /* --- 投影片基礎樣式 --- */
+        .slide {
+            width: 100%;
+            height: 100vh; /* 每張投影片都佔滿整個視窗 */
+            scroll-snap-align: start; /* 滾動時對齊投影片頂部 */
+            background-color: #ffffff;
+            border-bottom: 1px solid #ddd;
+            padding: 40px 60px;
+            box-sizing: border-box; /* 確保 padding 不會撐爆高度 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden; /* 投影片本身不滾動 */
+        }
+
+        /* --- 內容滾動區 (關鍵) --- */
+        .slide-content {
+            flex-grow: 1; /* 佔滿除了 footer 之外的所有空間 */
+            overflow-y: auto; /* *** 如果內容過長，此區域會產生滾動條 *** */
+            padding-right: 20px; /* 避免內容被滾動條遮住 */
+            margin-right: -20px; /* 將滾動條推回邊緣 */
+        }
+
+        .slide h1 {
+            font-size: 2.5rem; /* 40px */
+            color: #003366; /* 深藍色 */
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #0056b3;
+            padding-bottom: 10px;
+            flex-shrink: 0; /* 標題不壓縮 */
+        }
+        
+        .slide h2 {
+            font-size: 1.75rem; /* 28px */
+            color: #0056b3; /* 中藍色 */
+            margin-top: 15px;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .slide h3 {
+            font-size: 1.3rem; /* 21px */
+            font-weight: 600;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .slide p, .slide li {
+            font-size: 1.1rem; /* 17.6px */
+            line-height: 1.7;
+            color: #222;
+        }
+
+        .slide ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .slide ul li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 12px;
+        }
+
+        .slide ul li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-weight: bold;
+            color: #28a745; /* 綠色勾 */
+            font-size: 1.2rem;
+        }
+
+        /* --- 頁腳 --- */
+        .footer {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 20px; /* 保持與內容的間距 */
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            flex-shrink: 0; /* 頁腳不壓縮 */
+        }
+
+        /* --- 特殊樣式 --- */
+        .title-slide {
+            text-align: center;
+            justify-content: center;
+        }
+
+        .title-slide h1 {
+            font-size: 3rem;
+            border-bottom: none;
+        }
+        
+        .title-slide h2 {
+            font-size: 2rem;
+            color: #555;
+            font-weight: 400;
+        }
+
+        .title-slide .meta {
+            margin-top: 30px;
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .highlight { font-weight: bold; color: #D9534F; }
+        .highlight-green { font-weight: bold; color: #5CB85C; }
+
+        .columns {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .col {
+            flex-basis: 31%;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9e9e9;
+        }
+        .col p { font-size: 1rem; line-height: 1.6; }
+        .col .action-title { font-size: 1.3rem; font-weight: 600; display: block; margin-bottom: 10px; }
+        .col .why { font-style: italic; color: #555; border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 10px; font-size: 0.95rem; }
+        
+        .year1-title { color: #5CB85C; border-bottom-color: #5CB85C; }
+        .year2-title { color: #F0AD4E; border-bottom-color: #F0AD4E; }
+        .year3-title { color: #D9534F; border-bottom-color: #D9534F; }
+        .col-y1 .action-title { color: #5CB85C; }
+        .col-y2 .action-title { color: #F0AD4E; }
+        .col-y3 .action-title { color: #D9534F; }
+        
+        /* --- 全螢幕按鈕 --- */
+        #fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 10px 15px;
+            font-size: 1rem;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: background-color 0.2s ease;
+        }
+        #fullscreen-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="fullscreen-btn">全螢幕</button>
+
+    <div class="deck">
+
+        <div class="slide title-slide">
+            <div class="slide-content">
+                <h1>品質管理中心 (QMC) 策略轉型</h1>
+                <h2>運用 AI 實現「零客訴」：三年行動藍圖</h2>
+                <div class="meta">
+                    <p>呈報人：策略規劃 AI 助理</p>
+                    <p>2025 年 11 月 2 日</p>
+                </div>
+            </div>
+            <div class="footer">
+                內部文件 | CONFIDENTIAL
+            </div>
+        </div>
+
+        <div class="slide">
+            <h1>總目標：從「事後補救」到「事前預防」</h1>
+            <div class="slide-content">
+                <h2>"在客戶抱怨前，就用 AI 預測並攔截問題。"</h2>
+                
+                <p>我們的策略核心，是推動 QMC 從傳統的「成本中心」轉型為企業的「預測性品質神經中樞」。</p>
+                
+                <ul>
+                    <li><strong>傳統 (TQM):</strong> 問題發生 ➔ 客訴 ➔ 人工分析 ➔ 補救 ( <span class="highlight">被動且太慢</span> )</li>
+                    <li><strong>未來 (AI Quality):</strong> 數據蒐集 ➔ AI 預測 ➔ <span class="highlight-green">即時攔截</span> ➔ 零客訴 ( <span class="highlight-green">主動且有效</span> )</li>
+                </ul>
+                
+                <p style="margin-top: 20px;">
+                    這份三年計畫將專注於「具體可落地」的行動，逐步建立 AI 預測能力。
+                </p>
+            </div>
+            <div class="footer">
+                QMC 策略轉型 | 核心願景
+            </div>
+        </div>
+
+        <div class="slide">
+            <h1 class="year1-title">🟢 第一年：打地基</h1>
+            <div class="slide-content">
+                <h2>目標：把數據收齊、變乾淨，建立 AI 可讀取的「單一事實來源」</h2>
+                
+                <div class="columns">
+                    <div class="col col-y1">
+                        <span class="action-title">行動 1: 檢驗站無紙化</span>
+                        <p><strong>做法：</strong> 將所有 IQC, IPQC, OQC 的紙本檢驗表，全面替換為平板電腦輸入。</p>
+                        <p class="why"><strong>目的：</strong> 數據即時進入資料庫，AI 才能讀懂。杜絕手寫錯誤與資訊延遲。</p>
+                    </div>
+                    
+                    <div class="col col-y1">
+                        <span class="action-title">行動 2: 關鍵設備裝感測器</span>
+                        <p><strong>做法：</strong> 找出最常出包的製程（如：萃取槽、冷凍庫），安裝 IoT 溫濕度/壓力感測器。</p>
+                        <p class="why"><strong>目的：</strong> 7x24 收集連續數據，取代人工定時抄寫，捕捉人眼看不到的微小異常。</p>
+                    </div>
+
+                    <div class="col col-y1">
+                        <span class="action-title">行動 3: 打通三大系統</span>
+                        <p><strong>做法：</strong> 由 QMC 主導，IT 協助串接 LIMS (實驗室)、WMS (倉庫)、CRM (客訴) 系統。</p>
+                        <p class="why"><strong>目的：</strong> 讓「客訴批號」能一秒回溯所有生產履歷，建立分析基礎。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                QMC 策略轉型 | Year 1: Foundation
+            </div>
+        </div>
+
+        <div class="slide">
+            <h1 class="year2-title">🟠 第二年：練兵</h1>
+            <div class="slide-content">
+                <h2>目標：導入 AI 模型，從「事後分析」轉向「即時洞察」，開始抓小偷</h2>
+
+                <div class="columns">
+                    <div class="col col-y2">
+                        <span class="action-title">行動 1: 安裝「AI 眼睛」</span>
+                        <p><strong>做法：</strong> 在包裝線導入 AOI (自動光學檢測)，訓練 AI 辨識外觀缺陷。</p>
+                        <p class="why"><strong>目的：</strong> 7x24 檢查標籤、瓶蓋、外箱。取代人眼疲勞，大幅降低人為失誤。</p>
+                    </div>
+                    
+                    <div class="col col-y2">
+                        <span class="action-title">行動 2: 啟用「AI 客訴分析師」</span>
+                        <p><strong>做法：</strong> 導入 NLP (自然語言處理) 工具，自動讀取並分類所有客訴文字。</p>
+                        <p class="why"><strong>目的：</strong> 1 小時內自動完成客訴歸因 (RCA)，取代過去數週的人工會議與歸納。</p>
+                    </div>
+
+                    <div class="col col-y2">
+                        <span class="action-title">行動 3: 建立「即時戰情室」</span>
+                        <p><strong>做法：</strong> AI 監控第一年安裝的 IoT 數據流，並在監控大螢幕上視覺化。</p>
+                        <p class="why"><strong>目的：</strong> 從「超標才警報 (SPC)」升級為「有 <span class="highlight">趨勢</span> 就預警 (APC)」。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                QMC 策略轉型 | Year 2: Activation
+            </div>
+        </div>
+
+        <div class="slide">
+            <h1 class="year3-title">🔴 第三年：上戰場</h1>
+            <div class="slide-content">
+                <h2>目標：建立預測模型，實現「零客訴」的最終防線，主動擋子彈</h2>
+
+                <div class="columns">
+                    <div class="col col-y3">
+                        <span class="action-title">行動 1: 打造 QMC「水晶球」</span>
+                        <p><strong>做法：</strong> 彙整前 2 年所有數據（原料、製程、倉儲、客訴），訓練「品質預測模型」。</p>
+                        <p class="why"><strong>目的：</strong> AI 學會找出「客訴」與「製程參數」之間的隱藏關聯性。</p>
+                    </div>
+                    
+                    <div class="col col-y3">
+                        <span class="action-title">行動 2: 啟動「AI 品質防火牆」</span>
+                        <p><strong>做法：</strong> AI 在每批產品出貨前，自動計算其「客訴風險分數」。</p>
+                        <p class="why"><strong>目的：</strong> 高風險批次 <span class="highlight">自動鎖定</span> 不准出貨，並通知 QMC 複檢，從源頭攔截。</p>
+                    </div>
+
+                    <div class="col col-y3">
+                        <span class="action-title">行動 3: 建立「自動改善循環」</span>
+                        <p><strong>做法：</strong> AI 分析結果（如：某原料風險高）自動推播給相關單位。</p>
+                        <p class="why"><strong>目的：</strong> 風險自動回饋給運籌 (採購) 和研發 (製程)，形成持續改善的閉環。</p>
+                    </div>
+                </div>
+                </div>
+            <div class="footer">
+                QMC 策略轉型 | Year 3: Prediction
+            </div>
+        </div>
+        
+        <div class="slide">
+            <h1>結論：轉型為「數據驅動」的品質中心</h1>
+            <div class="slide-content">
+                <h2>成功關鍵</h2>
+                
+                <ul>
+                    <li><strong>數據品質：</strong> 第一年的地基是重中之重，必須確實執行無紙化與數據串接。</li>
+                    <li><strong>跨部門協同：</strong> QMC 必須強勢主導，串聯 IT、研發、運籌中心，打破數據孤島。</li>
+                    <li><strong>快速迭代：</strong> 建議先從「單一產線」或「單一產品」開始試點，驗證 AI 模型有效後再全面擴大。</li>
+                </ul>
+
+                <h2 style="margin-top: 30px;">建議的下一步</h2>
+                <p style="font-size: 1.2rem; color: #003366; font-weight: 600;">
+                    立即召集 QMC、研發、IT 主管，共同盤點：
+                </p>
+                <p style="font-size: 1.1rem; padding-left: 20px;">
+                    1. 第一年「檢驗站無紙化」所需的平板硬體與軟體開發預算。<br>
+                    2. 第一年「關鍵設備裝感測器」的優先順序與導入成本。
+                </p>
+            </div>
+            <div class="footer">
+                QMC 策略轉型 | Next Steps
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('fullscreen-btn');
+            const docEl = document.documentElement;
+
+            btn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    // 請求全螢幕
+                    if (docEl.requestFullscreen) {
+                        docEl.requestFullscreen();
+                    } else if (docEl.mozRequestFullScreen) { // Firefox
+                        docEl.mozRequestFullScreen();
+                    } else if (docEl.webkitRequestFullscreen) { // Chrome, Safari, Opera
+                        docEl.webkitRequestFullscreen();
+                    } else if (docEl.msRequestFullscreen) { // IE/Edge
+                        docEl.msRequestFullscreen();
+                    }
+                    btn.textContent = '退出全螢幕';
+                } else {
+                    // 退出全螢幕
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.mozCancelFullScreen) { // Firefox
+                        document.mozCancelFullScreen();
+                    } else if (document.webkitExitFullscreen) { // Chrome, Safari, Opera
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) { // IE/Edge
+                        document.msExitFullscreen();
+                    }
+                    btn.textContent = '全螢幕';
+                }
+            });
+
+            // 監聽 'Esc' 鍵退出全螢幕的事件
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) {
+                    btn.textContent = '全螢幕';
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
