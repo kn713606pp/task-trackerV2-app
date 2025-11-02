@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>願景與策略提案 (v6)</title>
+    <title>願景與策略提案 (v7 - 捲動版)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -16,20 +16,24 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: smooth; /* 讓JS的滾動有平滑效果 */
+  /*
+    新增：捲動吸附
+    讓頁面在捲動時，自動吸附到每張投影片的頂部
+  */
+  scroll-snap-type: y proximity; 
 }
 
 body {
   background-color: #f0f4f8;
   display: grid;
-  gap: 20px;
+  gap: 20px; /* 投影片之間的間距 */
   grid-template-columns: 1fr;
   margin: 0;
   min-height: 100vh;
-  padding: 20px 0;
+  padding: 20px 0; /* 上下留白 */
   place-items: start center;
   overflow-y: auto;
-  /* 關鍵：防止手機上的觸控滾動干擾滑動手勢 */
   overflow-x: hidden; 
 }
 
@@ -41,33 +45,25 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  overflow: hidden;
+  overflow: hidden; /* 內部溢出隱藏 (例如背景特效) */
   position: relative;
-  transition: height 0.4s ease-in-out;
-  display: none; /* 預設隱藏 */
-
+  
   /*
-    --- 響應式佈局核心 ---
-    使用 clamp, aspect-ratio 和響應式 padding 來取代固定的 1280x720
+    --- 核心變更 ---
+    1. 移除 aspect-ratio: 16 / 9
+    2. 移除 display: none
+    3. height 改為 auto
+    4. 新增 min-height: 90vh (確保至少有 90% 螢幕高度)
   */
-  width: clamp(300px, 95vw, 1280px); /* 最小300px, 理想95vw, 最大1280px */
-  aspect-ratio: 16 / 9; /* 強制 16:9 比例 */
-  height: auto; /* 高度由 aspect-ratio 自動決定 */
+  width: clamp(300px, 95vw, 1280px); /* 響應式寬度 */
+  height: auto; /* 高度自動 */
+  min-height: 90vh; /* 最小高度 (無論直式橫式) */
   padding: 4.6875%; /* 響應式 padding (60px / 1280px) */
+
+  /* 捲動吸附的對齊點 */
+  scroll-snap-align: start; 
 }
 
-/* 當前顯示的投影片 */
-.slide-container.active {
-  display: flex;
-}
-
-/* 展開狀態的投影片 */
-.slide-container.expanded {
-  aspect-ratio: auto; /* 取消 16:9 限制 */
-  height: auto; /* 高度自動適應內容 */
-  min-height: 50vh; /* 展開時的最小高度 */
-  overflow: visible;
-}
 
 /* 1.1 BACKGROUND STYLING - Abstract Shapes */
 
@@ -134,7 +130,7 @@ body {
 
 /* 響應式字體大小 */
 .slide-container h1 {
-  font-size: clamp(32px, 5.5vw, 70px); /* 最小32, 理想5.5vw, 最大70 */
+  font-size: clamp(32px, 5.5vw, 70px); 
 }
 
 .slide-container .slide-title {
@@ -164,7 +160,7 @@ body {
 .slide-container td,
 .slide-container .alternating-text-tile p,
 .slide-container .bleed-text-side p {
-  font-size: clamp(10px, 1.4vw, 18px); /* 最小10, 理想1.4vw, 最大18 */
+  font-size: clamp(12px, 1.4vw, 18px); /* 最小 12px 確保手機可讀性 */
   line-height: 1.5;
 }
 
@@ -181,13 +177,12 @@ body {
   flex-grow: 1;
   justify-content: center;
   width: 100%;
-  overflow-y: auto;
+  /* 
+    移除 overflow-y: auto; 
+    因為 slide-container 已經是 height: auto 
+    不再需要內部捲動 
+  */
 }
-
-.slide-container.expanded .content-area {
-    overflow-y: visible;
-}
-
 
 /* 3. LAYOUT DEFINITIONS */
 
@@ -220,7 +215,7 @@ body {
 }
 
 .two-column.tiled li {
-  font-size: clamp(10px, 1.25vw, 16px);
+  font-size: clamp(12px, 1.25vw, 16px);
 }
 
 .two-column ul {
@@ -235,7 +230,6 @@ body {
 
 .image-wrapper {
   border-radius: 12px;
-  height: 62.5%; /* 450px / 720px (slide height) -> This is tricky. Let's fix height */
   height: 450px;
   max-height: 50vh; /* 確保在小螢幕上不會過高 */
   overflow: hidden;
@@ -286,7 +280,7 @@ body {
 }
 
 .tile p, .tile li {
-    font-size: clamp(10px, 1.25vw, 16px);
+    font-size: clamp(12px, 1.25vw, 16px);
 }
 
 .bullet-list {
@@ -359,12 +353,8 @@ body {
 /* Table Layout */
 .table-layout {
   width: 100%;
-  height: 100%;
-}
-
-.slide-container.expanded .table-layout {
-    height: auto; 
-    overflow-y: visible;
+  height: auto; /* 移除 height: 100% */
+  overflow-y: visible; /* 移除內部捲動 */
 }
 
 .table-layout table {
@@ -482,7 +472,6 @@ body {
 .strategy-path-container {
     display: flex;
     flex-direction: column;
-    /* 移除 justify-content: center; 確保從頂部開始 */
     gap: 15px;
     width: 100%; /* 佔滿可用寬度 */
 }
@@ -522,29 +511,10 @@ body {
 
 /* 4. 簡報控制項 */
 
-/* 全螢幕按鈕 (永遠顯示) */
-#fullscreen-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-  background-color: #1e293b;
-  color: #f8fafc;
-  border: 1px solid #334155;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s, color 0.2s;
-}
-#fullscreen-btn:hover {
-  background-color: #3b82f6;
-  color: white;
-}
+/* 
+  移除： #fullscreen-btn 
+  移除： .expand-toggle
+*/
 
 /* 頁碼計數器 */
 #slide-counter {
@@ -561,47 +531,12 @@ body {
   backdrop-filter: blur(5px);
 }
 
-/* 展開/收合 按鈕 */
-.expand-toggle {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 500;
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 25px;
-  padding: 10px 25px;
-  font-size: clamp(14px, 1.25vw, 16px);
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  cursor: pointer;
-  opacity: 0.8;
-  transition: opacity 0.2s, background-color 0.2s;
-  display: none;
-}
-.expand-toggle:hover {
-  opacity: 1;
-  background-color: #2563eb;
-}
 
-.slide-container.is-overflowing .expand-toggle {
-  display: inline-block;
-}
-
-.expand-toggle i {
-  margin-left: 8px;
-}
-
-/* 針對手機的小螢幕調整 */
+/* 針對手機的小螢幕調整 (現在更重要了) */
 @media (max-width: 768px) {
     body {
         padding: 10px 0; /* 減少邊距 */
         gap: 10px;
-    }
-    .slide-container.expanded {
-        min-height: 80vh; /* 展開時最小高度高一點 */
     }
     
     /* 調整堆疊佈局 */
@@ -627,23 +562,10 @@ body {
         margin-right: 10px;
     }
 
-
     /* 調整按鈕位置 */
     #slide-counter {
         bottom: 10px;
         left: 10px;
-    }
-    /* 調整全螢幕按鈕在手機上的位置，避免重疊 */
-    #fullscreen-btn { 
-        bottom: 10px;
-        right: 10px;
-        width: 45px;
-        height: 45px;
-        font-size: 18px;
-    }
-    .expand-toggle {
-        bottom: 10px;
-        padding: 8px 16px;
     }
 }
 
@@ -652,13 +574,16 @@ body {
 </head>
 <body>
 
-<!-- 全螢幕按鈕 -->
-<button id="fullscreen-btn" title="全螢幕">
-    <i class="fa-solid fa-expand"></i>
-</button>
+<!-- 全螢幕按鈕 (已移除) -->
 
 <!-- 頁碼計數器 -->
 <div id="slide-counter"></div>
+
+<!-- 
+  所有 .slide-container 現在預設都是 display: flex 
+  (或繼承自 grid item 的預設) 
+  不再需要 .active class 來切換
+-->
 
 <!-- Slide 1: Title_Slide -->
 <div class="slide-container" id="slide1">
@@ -1029,14 +954,14 @@ body {
 <div class="slide-container" id="slide16">
     <h2 class="slide-title">策略地圖概覽 (由下而上驅動)</h2>
     <!-- 
-        修正：
-        - 移除 justify-content: center (避免內容從中間開始)
-        - 移除 align-items: center (避免內容從中間開始)
-        - 改用 justify-content: flex-start (從頂部開始)
-        - 改用 align-items: flex-start (從頂部開始)
-        - 增加 padding-top 讓捲動區有呼吸空間
+      修正：
+      - 移除 justify-content: center (避免內容從中間開始)
+      - 移除 align-items: center (避免內容從中間開始)
+      - 改用 justify-content: flex-start (從頂部開始)
+      - 改用 align-items: center (水平置中)
+      - 增加 padding-top 讓捲動區有呼吸空間
     -->
-    <div class="content-area" style="justify-content: flex-start; align-items: flex-start; padding-top: 10px;">
+    <div class="content-area" style="justify-content: flex-start; align-items: center; padding-top: 10px;">
         <div class="strategy-path-container" style="width: 90%; max-width: 900px;">
             
             <!-- 1. 基礎 -->
@@ -1262,7 +1187,7 @@ body {
         <div class="bullet-list plan-list">
             <ul>
                 <li><i class="fa-solid fa-1"></i><strong>藥商資格取得專案 (關鍵戰役):</strong> 於 2026 年 Q3 前取得藥商資格，並建立符合醫藥法規 (GMP/GCP) 的研發流程。</li>
-                <li><i class="fa-solid fa-2"></i><strong>關鍵人才引進 (最優先):</strong> 於 2026 年 Q1 緊急引進至少 1 名 chuyên任藥師與 1 名生物科技人才，解決人力斷層。</li>
+                <li><i class="fa-solid fa-2"></i><strong>關鍵人才引進 (最優先):</strong> 於 2026 年 Q1 緊急引進至少 1 名專任藥師與 1 名生物科技人才，解決人力斷層。</li>
                 <li><i class="fa-solid fa-3"></i><strong>AI 化研發知識管理系統 (KMS) 建置:</strong> 於 2026 年底前導入 KMS，系統化保存核心技術，降低知識斷層風險。</li>
                 <li><i class="fa-solid fa-4"></i><strong>AI 加速研發平台導入:</strong> 導入 AI 輔助安定性預測模型與 PIF 文件生成，目標 2027 年將開發週期縮短 30%。</li>
                 <li><i class="fa-solid fa-5"></i><strong>Bio-DME 高性能造型品開發:</strong> 運用麥芽糊精/VP共聚物等，於 2027 年 Q2 推動 Bio-DME 永續造型品上市。</li>
@@ -1636,15 +1561,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 獲取所有投影片和控制按鈕
     const slides = document.querySelectorAll('.slide-container');
     const totalSlides = slides.length;
-    const fsBtn = document.getElementById('fullscreen-btn');
-    const fsIcon = fsBtn.querySelector('i');
     const counter = document.getElementById('slide-counter');
 
     let currentSlide = 0;
-    let isThrottled = false; // 用於滾動節流
-    let isSlideExpanded = false; // 標記是否有投影片處於展開狀態
 
-    // --- 新增：觸控變數 ---
+    // --- 觸控變數 ---
     let touchStartX = 0;
     let touchStartY = 0;
 
@@ -1652,22 +1573,39 @@ document.addEventListener('DOMContentLoaded', () => {
      * 初始化簡報
      */
     function init() {
-        checkAllSlidesOverflow();
-        showSlide(0); // 顯示第一張投影片
-        
         // 綁定事件監聽
-        document.addEventListener('wheel', handleScroll); // 桌面滾輪
         document.addEventListener('keydown', handleKeys); // 桌面鍵盤
-        fsBtn.addEventListener('click', toggleFullscreen);
-        document.addEventListener('fullscreenchange', updateFullscreenIcon);
-
-        // --- 新增：綁定觸控事件 ---
-        document.addEventListener('touchstart', handleTouchStart, { passive: true });
+        document.addEventListener('touchstart', handleTouchStart, { passive: true }); // 手機觸控
         document.addEventListener('touchend', handleTouchEnd);
+
+        // 啟動 IntersectionObserver 來監測目前在哪一頁
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+                        const index = Array.from(slides).indexOf(entry.target);
+                        if (index !== currentSlide) {
+                            currentSlide = index;
+                            updateCounter();
+                        }
+                    }
+                });
+            },
+            {
+                root: null, // viewport
+                rootMargin: '0px',
+                threshold: 0.5, // 50% 可見時觸發
+            }
+        );
+
+        slides.forEach((slide) => observer.observe(slide));
+        
+        // 立即更新一次計數器
+        updateCounter();
     }
 
     /**
-     * 顯示指定的投影片
+     * 捲動到指定的投影片
      * @param {number} index - 要顯示的投影片索引
      */
     function showSlide(index) {
@@ -1677,27 +1615,19 @@ document.addEventListener('DOMContentLoaded', () => {
             index = totalSlides - 1;
         }
 
-        if (index === currentSlide && slides[currentSlide].classList.contains('active')) {
-             return;
-        }
+        const targetSlide = slides[index];
+        if (!targetSlide) return;
 
-        if (slides[currentSlide]) {
-            slides[currentSlide].classList.remove('active');
-        }
+        // 計算目標位置 (投影片頂部 - body 的 padding)
+        const bodyPaddingTop = parseInt(window.getComputedStyle(document.body).paddingTop, 10) || 20;
+        const targetPosition = targetSlide.offsetTop - bodyPaddingTop;
 
-        currentSlide = index;
-        const newSlide = slides[currentSlide];
-        newSlide.classList.add('active');
-
-        updateCounter();
-
-        isSlideExpanded = newSlide.classList.contains('expanded');
-
-        if (!isSlideExpanded) {
-            // 滾動到投影片頂部 (在 body 上，因為投影片是 grid item)
-             const bodyPaddingTop = parseInt(window.getComputedStyle(document.body).paddingTop, 10) || 20;
-            window.scrollTo(0, newSlide.offsetTop - bodyPaddingTop);
-        }
+        window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
+        });
+        
+        // 捲動後，Observer 會自動捕捉並更新 currentSlide 和 counter
     }
 
     /**
@@ -1708,31 +1638,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * 處理滑鼠滾輪事件 (換頁)
-     * @param {WheelEvent} event
-     */
-    function handleScroll(event) {
-        if (isThrottled || isSlideExpanded) return; // 展開時不觸發
-
-        isThrottled = true;
-
-        if (event.deltaY > 0) {
-            showSlide(currentSlide + 1);
-        } else if (event.deltaY < 0) {
-            showSlide(currentSlide - 1);
-        }
-
-        setTimeout(() => {
-            isThrottled = false;
-        }, 800);
-    }
-
-    /**
      * 處理鍵盤事件 (換頁)
      * @param {KeyboardEvent} event
      */
     function handleKeys(event) {
-        if (isSlideExpanded) return; // 展開時不觸發
+        // 確保不是在輸入框中按鍵
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+            return;
+        }
 
         switch (event.key) {
             case 'ArrowRight':
@@ -1748,25 +1661,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 新增：處理觸控開始 ---
     /**
+     * 處理觸控開始
      * @param {TouchEvent} event
      */
     function handleTouchStart(event) {
-        if (isSlideExpanded) return; // 展開時不觸發
-        
         touchStartX = event.touches[0].clientX;
         touchStartY = event.touches[0].clientY;
     }
 
-    // --- 新增：處理觸控結束 (計算滑動) ---
     /**
+     * 處理觸控結束 (計算滑動)
      * @param {TouchEvent} event
      */
     function handleTouchEnd(event) {
-        if (isSlideExpanded) return; // 展開時不觸發
-
-        if (touchStartX === 0) return; // 沒有偵測到 touchstart
+        if (touchStartX === 0) return;
 
         const touchEndX = event.changedTouches[0].clientX;
         const touchEndY = event.changedTouches[0].clientY;
@@ -1781,108 +1690,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // 檢查是否為有效的水平滑動（水平>垂直，且超過40px）
         if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 40) {
             if (deltaX > 0) {
-                // 向右滑
+                // 向右滑 (上一頁)
                 showSlide(currentSlide - 1);
             } else {
-                // 向左滑
+                // 向左滑 (下一頁)
                 showSlide(currentSlide + 1);
             }
-        }
-    }
-
-
-    /**
-     * 檢查所有投影片是否內容溢出
-     */
-    function checkAllSlidesOverflow() {
-        slides.forEach((slide) => {
-            slide.style.display = 'flex';
-            slide.style.visibility = 'hidden';
-            slide.style.position = 'absolute';
-            // 暫時取消 aspect-ratio 以便正確測量
-            slide.style.aspectRatio = 'auto';
-            slide.style.height = '720px'; // 用一個固定高度來測量
-
-            const contentArea = slide.querySelector('.content-area');
-            let isOverflowing = false;
-
-            if (contentArea) {
-                isOverflowing = contentArea.scrollHeight > contentArea.clientHeight;
-            } else {
-                isOverflowing = slide.scrollHeight > slide.clientHeight;
-            }
-
-            // 恢復樣式
-            slide.style.display = '';
-            slide.style.visibility = '';
-            slide.style.position = '';
-            slide.style.aspectRatio = '16 / 9';
-            slide.style.height = 'auto';
-
-
-            if (isOverflowing) {
-                slide.classList.add('is-overflowing');
-                
-                const expandBtn = document.createElement('button');
-                expandBtn.className = 'expand-toggle';
-                expandBtn.innerHTML = '展開內容 <i class="fa-solid fa-chevron-down"></i>';
-                slide.appendChild(expandBtn);
-
-                expandBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleExpand(slide, expandBtn);
-                });
-            }
-        });
-    }
-
-    /**
-     * 切換投影片的展開/收合狀態
-     * @param {HTMLElement} slide - 目標投影片
-     * @param {HTMLButtonElement} btn - 點擊的按鈕
-     */
-    function toggleExpand(slide, btn) {
-        slide.classList.toggle('expanded');
-        isSlideExpanded = slide.classList.contains('expanded');
-
-        if (isSlideExpanded) {
-            btn.innerHTML = '收合內容 <i class="fa-solid fa-chevron-up"></i>';
-             const bodyPaddingTop = parseInt(window.getComputedStyle(document.body).paddingTop, 10) || 20;
-            window.scrollTo({
-                top: slide.offsetTop - bodyPaddingTop,
-                behavior: 'smooth'
-            });
-        } else {
-            btn.innerHTML = '展開內容 <i class="fa-solid fa-chevron-down"></i>';
-        }
-    }
-
-    /**
-     * 切換全螢幕模式
-     */
-    function toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen()
-                .catch(err => {
-                    console.error(`無法進入全螢幕模式: ${err.message} (${err.name})`);
-                });
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
-        }
-    }
-
-    /**
-     * 當全螢幕狀態改變時，更新圖示
-     */
-    function updateFullscreenIcon() {
-        if (document.fullscreenElement) {
-            fsIcon.classList.replace('fa-expand', 'fa-compress');
-            fsBtn.title = '結束全螢幕';
-        } else {
-            fsIcon.classList.replace('fa-compress', 'fa-expand');
-            fsBtn.title = '全螢幕';
         }
     }
 
