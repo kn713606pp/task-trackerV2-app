@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>願景與策略提案 (互動版)</title>
+    <title>願景與策略提案 (v6)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
@@ -15,11 +15,6 @@
   box-sizing: border-box;
 }
 
-/* 修改 Body:
-  - 移除 grid，改為標準 block
-  - 'place-items: start center' 確保展開的投影片從頂部對齊
-  - 'overflow-y: auto' 允許在投影片展開時滾動頁面
-*/
 html {
   scroll-behavior: smooth;
 }
@@ -31,43 +26,47 @@ body {
   grid-template-columns: 1fr;
   margin: 0;
   min-height: 100vh;
-  padding: 20px 0; /* 為展開的投影片提供上下空間 */
-  place-items: start center; /* 關鍵：頂部對齊，水平置中 */
-  overflow-y: auto; /* 允許在投影片展開時滾動 */
+  padding: 20px 0;
+  place-items: start center;
+  overflow-y: auto;
+  /* 關鍵：防止手機上的觸控滾動干擾滑動手勢 */
+  overflow-x: hidden; 
 }
 
 .slide-container {
   align-items: center;
-  background-color: #1e293b; /* Dark slate background */
+  background-color: #1e293b;
   border-radius: 8px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  height: 720px; /* 固定高度 */
   justify-content: center;
-  overflow: hidden; /* 隱藏溢出內容，直到展開 */
-  padding: 60px;
+  overflow: hidden;
   position: relative;
-  width: 1280px;
-  max-width: 95vw; /* 確保在小螢幕上的基本可用性 */
-  transition: height 0.4s ease-in-out; /* 高度變化動畫 */
+  transition: height 0.4s ease-in-out;
+  display: none; /* 預設隱藏 */
 
-  /* 新增：預設隱藏，由 JS 控制顯示 */
-  display: none;
+  /*
+    --- 響應式佈局核心 ---
+    使用 clamp, aspect-ratio 和響應式 padding 來取代固定的 1280x720
+  */
+  width: clamp(300px, 95vw, 1280px); /* 最小300px, 理想95vw, 最大1280px */
+  aspect-ratio: 16 / 9; /* 強制 16:9 比例 */
+  height: auto; /* 高度由 aspect-ratio 自動決定 */
+  padding: 4.6875%; /* 響應式 padding (60px / 1280px) */
 }
 
-/* 新增 Class:
-  - .active: 當前顯示的投影片
-  - .expanded: 展開狀態的投影片
-*/
+/* 當前顯示的投影片 */
 .slide-container.active {
   display: flex;
 }
 
+/* 展開狀態的投影片 */
 .slide-container.expanded {
-  height: auto; /* 關鍵：高度自動適應內容 */
-  min-height: 720px; /* 保持最小高度 */
-  overflow: visible; /* 顯示所有內容 */
+  aspect-ratio: auto; /* 取消 16:9 限制 */
+  height: auto; /* 高度自動適應內容 */
+  min-height: 50vh; /* 展開時的最小高度 */
+  overflow: visible;
 }
 
 /* 1.1 BACKGROUND STYLING - Abstract Shapes */
@@ -104,21 +103,19 @@ body {
   z-index: 1;
 }
 
-/* 2. CONSISTENT TYPOGRAPHY */
+/* 2. CONSISTENT TYPOGRAPHY (響應式字體) */
 
 /* Headings Font */
-
 .slide-container h1,
 .slide-container h2,
 .slide-container h3 {
-  color: #f8fafc; /* White */
+  color: #f8fafc;
   font-weight: 700;
   font-family: 'Poppins', sans-serif;
   margin: 0;
 }
 
 /* Body Text Font */
-
 .slide-container p,
 .slide-container li,
 .slide-container .subtitle,
@@ -131,35 +128,32 @@ body {
 .slide-container .alternating-text-tile p,
 .slide-container .bleed-text-side p,
 .slide-container cite {
-  color: #cbd5e1; /* Light gray */
+  color: #cbd5e1;
   font-family: 'Lato', sans-serif;
 }
 
-/* Consistent Font Sizes */
-
+/* 響應式字體大小 */
 .slide-container h1 {
-  font-size: 70px;
+  font-size: clamp(32px, 5.5vw, 70px); /* 最小32, 理想5.5vw, 最大70 */
 }
 
 .slide-container .slide-title {
-  /* This is an h2 */
-  font-size: 40px;
+  font-size: clamp(24px, 3.1vw, 40px);
   font-weight: 700;
   margin-bottom: 40px;
   text-align: left;
   width: 100%;
-  flex-shrink: 0; /* 防止標題在 flex 中被壓縮 */
+  flex-shrink: 0;
 }
 
 .slide-container h3 {
-  font-size: 24px;
+  font-size: clamp(18px, 1.9vw, 24px);
   font-weight: 700;
   margin-bottom: 15px;
-  color: #f8fafc; /* White */
+  color: #f8fafc;
 }
 
-/* Unified body text size */
-
+/* 統一的響應式內文大小 */
 .slide-container p,
 .slide-container li,
 .slide-container .subtitle,
@@ -170,14 +164,14 @@ body {
 .slide-container td,
 .slide-container .alternating-text-tile p,
 .slide-container .bleed-text-side p {
-  font-size: 18px;
+  font-size: clamp(10px, 1.4vw, 18px); /* 最小10, 理想1.4vw, 最大18 */
   line-height: 1.5;
 }
 
 .slide-container .subtitle {
   font-weight: 400;
   margin: 20px auto;
-  font-size: 24px;
+  font-size: clamp(14px, 1.9vw, 24px);
   color: #cbd5e1;
 }
 
@@ -187,13 +181,11 @@ body {
   flex-grow: 1;
   justify-content: center;
   width: 100%;
-  /* 關鍵：允許內容區域在需要時滾動 */
-  overflow-y: auto; 
-  /* 修正：在 .expanded 狀態下，內容區域不應滾動，而是讓父級(slide-container)伸展 */
+  overflow-y: auto;
 }
 
 .slide-container.expanded .content-area {
-    overflow-y: visible; /* 展開時，讓內容撐開父級 */
+    overflow-y: visible;
 }
 
 
@@ -207,7 +199,7 @@ body {
   align-items: flex-start;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 50px;
+  gap: 3.9%; /* 50px / 1280px */
   width: 100%;
 }
 
@@ -219,16 +211,16 @@ body {
   background-color: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 40px;
+  padding: 3.125%; /* 40px / 1280px */
   text-align: left;
 }
 
 .two-column.tiled h3 {
-  color: #10b981; /* Accent Green */
+  color: #10b981;
 }
 
 .two-column.tiled li {
-  font-size: 16px;
+  font-size: clamp(10px, 1.25vw, 16px);
 }
 
 .two-column ul {
@@ -243,7 +235,9 @@ body {
 
 .image-wrapper {
   border-radius: 12px;
+  height: 62.5%; /* 450px / 720px (slide height) -> This is tricky. Let's fix height */
   height: 450px;
+  max-height: 50vh; /* 確保在小螢幕上不會過高 */
   overflow: hidden;
   width: 100%;
   background-color: rgba(255, 255, 255, 0.1);
@@ -262,7 +256,7 @@ body {
 .tiled-content {
   align-items: stretch;
   display: flex;
-  gap: 30px;
+  gap: 2.34%; /* 30px / 1280px */
   justify-content: center;
   width: 100%;
 }
@@ -276,23 +270,23 @@ body {
   flex-direction: column;
   flex: 1;
   justify-content: flex-start;
-  padding: 30px;
+  padding: 2.34%; /* 30px / 1280px */
   text-align: left;
 }
 
 .tile .icon {
-  color: #10b981; /* Accent Green */
-  font-size: 36px;
+  color: #10b981;
+  font-size: clamp(24px, 2.8vw, 36px);
   margin-bottom: 20px;
 }
 
 .tile h3 {
-    font-size: 22px;
+    font-size: clamp(16px, 1.7vw, 22px);
     color: #10b981;
 }
 
 .tile p, .tile li {
-    font-size: 16px;
+    font-size: clamp(10px, 1.25vw, 16px);
 }
 
 .bullet-list {
@@ -311,13 +305,20 @@ body {
   margin-bottom: 20px;
   padding-left: 40px;
   position: relative;
-  font-size: 20px;
+  font-size: clamp(14px, 1.56vw, 20px);
   line-height: 1.6;
 }
 
+/* SLIDE 18, 20, 22, 24, 25, 27, 29 - 五大計畫專用 */
+.bullet-list.plan-list li {
+    font-size: clamp(12px, 1.4vw, 18px); /* 字體稍小 */
+    line-height: 1.5;
+    margin-bottom: 15px; /* 行距稍密 */
+}
+
 .bullet-list i {
-  color: #10b981; /* Accent Green */
-  font-size: 24px;
+  color: #10b981;
+  font-size: clamp(18px, 1.875vw, 24px);
   left: 0;
   margin-top: 5px;
   position: absolute;
@@ -326,12 +327,11 @@ body {
 }
 
 .bullet-list li strong {
-  color: #f8fafc; /* White */
+  color: #f8fafc;
   font-weight: 700;
 }
 
 /* Section Title */
-
 .section-title-layout {
   align-items: center;
   display: flex;
@@ -343,13 +343,13 @@ body {
 }
 
 .section-title-layout h2 {
-  font-size: 70px;
+  font-size: clamp(36px, 5.5vw, 70px);
   margin-bottom: 20px;
   color: #f8fafc;
 }
 
 .section-title-layout hr {
-  background-color: #10b981; /* Accent Green */
+  background-color: #10b981;
   border: none;
   height: 5px;
   margin: 30px auto;
@@ -357,25 +357,15 @@ body {
 }
 
 /* Table Layout */
-
 .table-layout {
   width: 100%;
   height: 100%;
-  /* 修改：
-    - 移除 'overflow-y: auto'。
-    - 我們希望內容溢出時，由 .content-area 處理滾動
-    - 或者在 .expanded 狀態下，讓內容撐開父級
-  */
 }
 
-/* 修正：
-  - 在 .slide-container.expanded 狀態下， .table-layout 不應限制高度
-*/
 .slide-container.expanded .table-layout {
     height: auto; 
     overflow-y: visible;
 }
-
 
 .table-layout table {
   border-collapse: collapse;
@@ -385,15 +375,23 @@ body {
 .table-layout th,
 .table-layout td {
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 16px 20px;
+  padding: 1.25%; /* 16px / 1280px */
   text-align: left;
-  font-size: 16px;
+  font-size: clamp(9px, 1.25vw, 16px);
 }
+
+/* SLIDE 32 (ROI) 專用表格字體 */
+#slide32 .table-layout th,
+#slide32 .table-layout td {
+    font-size: clamp(8px, 1.2vw, 15px); /* 字體更小 */
+    padding: 1%;
+}
+
 
 .table-layout th {
   background-color: rgba(255, 255, 255, 0.1);
-  color: #f8fafc; /* White */
-  font-size: 18px;
+  color: #f8fafc;
+  font-size: clamp(10px, 1.4vw, 18px);
   font-weight: 700;
   font-family: 'Poppins', sans-serif;
 }
@@ -408,20 +406,19 @@ body {
 }
 
 .table-layout td strong {
-    color: #10b981; /* Accent Green */
+    color: #10b981;
     font-weight: 700;
 }
 
 /* Quote Layout */
-
 .quote-layout {
   text-align: center;
   width: 80%;
 }
 
 .quote-layout blockquote {
-  color: #f8fafc; /* White */
-  font-size: 44px;
+  color: #f8fafc;
+  font-size: clamp(22px, 3.4vw, 44px);
   font-weight: 700;
   font-family: 'Poppins', sans-serif;
   line-height: 1.4;
@@ -432,9 +429,9 @@ body {
 
 .quote-layout blockquote::before,
 .quote-layout blockquote::after {
-  color: #3b82f6; /* Accent Blue */
+  color: #3b82f6;
   content: '"';
-  font-size: 100px;
+  font-size: clamp(50px, 7.8vw, 100px);
   line-height: 0;
   position: absolute;
   opacity: 0.5;
@@ -452,13 +449,12 @@ body {
 
 .quote-layout cite {
   color: #cbd5e1;
-  font-size: 22px;
+  font-size: clamp(14px, 1.7vw, 22px);
   font-style: normal;
   font-family: 'Lato', sans-serif;
 }
 
 /* Q&A Layout */
-
 .qa-layout {
   text-align: center;
   width: 100%;
@@ -466,27 +462,67 @@ body {
 }
 
 .qa-layout h2 {
-  font-size: 80px;
+  font-size: clamp(40px, 6.25vw, 80px);
   margin-bottom: 20px;
   color: #f8fafc;
 }
 
 .qa-layout p {
-  font-size: 22px;
+  font-size: clamp(16px, 1.7vw, 22px);
   color: #cbd5e1;
 }
 
 .qa-layout .contact-info {
   color: #cbd5e1;
-  font-size: 20px;
+  font-size: clamp(14px, 1.56vw, 20px);
   margin-top: 40px;
 }
 
-/*
-  新增：簡報控制項
-*/
+/* --- SLIDE 16 (RE-DESIGN) --- */
+.strategy-path-container {
+    display: flex;
+    flex-direction: column;
+    /* 移除 justify-content: center; 確保從頂部開始 */
+    gap: 15px;
+    width: 100%; /* 佔滿可用寬度 */
+}
+.strategy-path-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease-out;
+}
+.strategy-path-item:hover {
+    transform: scale(1.02);
+}
 
-/* 全螢幕按鈕 */
+.strategy-path-item i {
+    color: #f59e0b; /* 預設 願景 橘色 */
+    font-size: clamp(20px, 2vw, 24px);
+    margin-right: 15px;
+}
+.strategy-path-item.internal i { color: #cbd5e1; } /* 內部 灰色 */
+.strategy-path-item.growth i { color: #10b981; } /* 成長 綠色 */
+
+.strategy-path-item strong {
+    color: #f8fafc;
+    font-size: clamp(14px, 1.5vw, 18px);
+    display: block;
+    margin-bottom: 2px;
+}
+.strategy-path-item p {
+    font-size: clamp(10px, 1.2vw, 14px);
+    line-height: 1.4;
+    margin: 0;
+}
+
+
+/* 4. 簡報控制項 */
+
+/* 全螢幕按鈕 (永遠顯示) */
 #fullscreen-btn {
   position: fixed;
   bottom: 20px;
@@ -521,14 +557,14 @@ body {
   padding: 8px 16px;
   border-radius: 20px;
   font-family: 'Poppins', sans-serif;
-  font-size: 16px;
+  font-size: clamp(12px, 1.25vw, 16px);
   backdrop-filter: blur(5px);
 }
 
 /* 展開/收合 按鈕 */
 .expand-toggle {
   position: absolute;
-  bottom: 20px; /* 位於投影片內部底部 */
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 500;
@@ -537,21 +573,19 @@ body {
   border: none;
   border-radius: 25px;
   padding: 10px 25px;
-  font-size: 16px;
+  font-size: clamp(14px, 1.25vw, 16px);
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   cursor: pointer;
   opacity: 0.8;
   transition: opacity 0.2s, background-color 0.2s;
-  display: none; /* 預設隱藏 */
+  display: none;
 }
-
 .expand-toggle:hover {
   opacity: 1;
   background-color: #2563eb;
 }
 
-/* 當偵測到溢出時，才顯示按鈕 */
 .slide-container.is-overflowing .expand-toggle {
   display: inline-block;
 }
@@ -560,17 +594,70 @@ body {
   margin-left: 8px;
 }
 
+/* 針對手機的小螢幕調整 */
+@media (max-width: 768px) {
+    body {
+        padding: 10px 0; /* 減少邊距 */
+        gap: 10px;
+    }
+    .slide-container.expanded {
+        min-height: 80vh; /* 展開時最小高度高一點 */
+    }
+    
+    /* 調整堆疊佈局 */
+    .two-column {
+        grid-template-columns: 1fr; /* 垂直堆疊 */
+        gap: 20px;
+    }
+    .tiled-content {
+        flex-direction: column; /* 垂直堆疊 */
+        gap: 20px;
+    }
+    .image-wrapper {
+        height: 200px; /* 固定圖片高度 */
+    }
+    /* SLIDE 16 策略地圖 */
+    .strategy-path-container {
+        gap: 10px;
+    }
+    .strategy-path-item {
+        padding: 10px;
+    }
+    .strategy-path-item i {
+        margin-right: 10px;
+    }
+
+
+    /* 調整按鈕位置 */
+    #slide-counter {
+        bottom: 10px;
+        left: 10px;
+    }
+    /* 調整全螢幕按鈕在手機上的位置，避免重疊 */
+    #fullscreen-btn { 
+        bottom: 10px;
+        right: 10px;
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+    .expand-toggle {
+        bottom: 10px;
+        padding: 8px 16px;
+    }
+}
+
 
     </style>
 </head>
 <body>
 
-<!-- 新增：全螢幕按鈕 -->
+<!-- 全螢幕按鈕 -->
 <button id="fullscreen-btn" title="全螢幕">
     <i class="fa-solid fa-expand"></i>
 </button>
 
-<!-- 新增：頁碼計數器 -->
+<!-- 頁碼計數器 -->
 <div id="slide-counter"></div>
 
 <!-- Slide 1: Title_Slide -->
@@ -586,7 +673,7 @@ body {
     <div class="section-title-layout">
         <h2>階段一</h2>
         <hr>
-        <p class="subtitle" style="font-size: 32px; color: #f8fafc;">資料接收與初步診斷</p>
+        <p class="subtitle" style="font-size: clamp(20px, 2.5vw, 32px); color: #f8fafc;">資料接收與初步診斷</p>
     </div>
 </div>
 
@@ -660,7 +747,7 @@ body {
     <div class="section-title-layout">
         <h2>階段二</h2>
         <hr>
-        <p class="subtitle" style="font-size: 32px; color: #f8fafc;">情境分析</p>
+        <p class="subtitle" style="font-size: clamp(20px, 2.5vw, 32px); color: #f8fafc;">情境分析</p>
     </div>
 </div>
 
@@ -847,7 +934,7 @@ body {
     <div class="section-title-layout">
         <h2>階段三</h2>
         <hr>
-        <p class="subtitle" style="font-size: 32px; color: #f8fafc;">願景與策略主軸確立</p>
+        <p class="subtitle" style="font-size: clamp(20px, 2.5vw, 32px); color: #f8fafc;">願景與策略主軸確立</p>
     </div>
 </div>
 
@@ -934,36 +1021,76 @@ body {
     <div class="section-title-layout">
         <h2>階段四</h2>
         <hr>
-        <p class="subtitle" style="font-size: 32px; color: #f8fafc;">部門策略與工作計畫</p>
+        <p class="subtitle" style="font-size: clamp(20px, 2.5vw, 32px); color: #f8fafc;">部門策略與工作計畫</p>
     </div>
 </div>
 
-<!-- Slide 16: Image_Right_Text_Left -->
+<!-- Slide 16: (RE-DESIGNED & SCROLL-FIXED) -->
 <div class="slide-container" id="slide16">
-    <h2 class="slide-title">策略地圖概覽</h2>
-    <div class="content-area">
-        <div class="two-column">
-            <div>
-                <div class="bullet-list">
-                    <ul style="list-style-type: none; padding-left: 0;">
-                        <li style="padding-left: 0;"><i class="fa-solid fa-arrow-up" style="position: static; margin-right: 15px; color: #f59e0b;"></i><strong>最終願景:</strong> 數據與 AI 驅動的全球永續美妝與健康解決方案平台</li>
-                        <li style="padding-left: 0;"><i class="fa-solid fa-arrow-up" style="position: static; margin-right: 15px; color: #cbd5e1;"></i><strong>財務維度:</strong> (↑ 驅動) 開創多元營收、提升營運效率、優化成本結構</li>
-                        <li style="padding-left: 0;"><i class="fa-solid fa-arrow-up" style="position: static; margin-right: 15px; color: #cbd5e1;"></i><strong>客戶維度:</strong> (↑ 驅動) 鞏固品牌定位、提升客戶滿意度、拓展新業務</li>
-                        <li style="padding-left: 0;"><i class="fa-solid fa-arrow-up" style="position: static; margin-right: 15px; color: #cbd5e1;"></i><strong>內部流程 (P1, P2, P4):</strong> (↑ 驅動) 建立智能製造、加速研發創新、落實全面品質、推動 BPR</li>
-                        <li style="padding-left: 0;"><i class="fa-solid fa-arrow-up" style="position: static; margin-right: 15px; color: #10b981;"></i><strong>學習與成長 (P3):</strong> (↑ 驅動) 引進關鍵人才、提升數位 AI 素養、建立 KMS、塑造敏捷文化</li>
-                    </ul>
+    <h2 class="slide-title">策略地圖概覽 (由下而上驅動)</h2>
+    <!-- 
+        修正：
+        - 移除 justify-content: center (避免內容從中間開始)
+        - 移除 align-items: center (避免內容從中間開始)
+        - 改用 justify-content: flex-start (從頂部開始)
+        - 改用 align-items: flex-start (從頂部開始)
+        - 增加 padding-top 讓捲動區有呼吸空間
+    -->
+    <div class="content-area" style="justify-content: flex-start; align-items: flex-start; padding-top: 10px;">
+        <div class="strategy-path-container" style="width: 90%; max-width: 900px;">
+            
+            <!-- 1. 基礎 -->
+            <div class="strategy-path-item growth">
+                <i class="fa-solid fa-arrow-up"></i>
+                <div>
+                    <strong>學習與成長 (P3) (基礎)</strong>
+                    <p>引進關鍵人才、提升數位 AI 素養、建立 KMS、塑造敏捷文化</p>
                 </div>
             </div>
-            <div>
-                <div class="image-wrapper"><img src="http://googleusercontent.com/image_collection/image_retrieval/8739842166477428122" alt="策略地圖示意圖" onerror="this.onerror=null;this.src='https://placehold.co/600x450/334155/e2e8f0?text=[策略地圖示意圖]';"></div>
+            
+            <!-- 2. 內部流程 -->
+            <div class="strategy-path-item internal">
+                <i class="fa-solid fa-arrow-up"></i>
+                <div>
+                    <strong>內部流程 (P1, P2, P4)</strong>
+                    <p>建立智能製造、加速研發創新、落實全面品質、推動 BPR</p>
+                </div>
             </div>
+            
+            <!-- 3. 客戶 -->
+            <div class="strategy-path-item internal">
+                <i class="fa-solid fa-arrow-up"></i>
+                <div>
+                    <strong>客戶維度</strong>
+                    <p>鞏固品牌定位、提升客戶滿意度、拓展新業務</p>
+                </div>
+            </div>
+            
+            <!-- 4. 財務 -->
+            <div class="strategy-path-item internal">
+                <i class="fa-solid fa-arrow-up"></i>
+                <div>
+                    <strong>財務維度</strong>
+                    <p>開創多元營收、提升營運效率、優化成本結構</p>
+                </div>
+            </div>
+            
+            <!-- 5. 願景 -->
+            <div class="strategy-path-item">
+                <i class="fa-solid fa-arrow-up"></i>
+                <div>
+                    <strong>最終願景 (頂層)</strong>
+                    <p>數據與 AI 驅動的全球永續美妝與健康解決方案平台</p>
+                </div>
+            </div>
+            
         </div>
     </div>
 </div>
 
 <!-- Slide 17: Table -->
 <div class="slide-container" id="slide17">
-    <h2 class="slide-title">運籌管理中心 (1/2): 智慧供應鏈中樞</h2>
+    <h2 class="slide-title">運籌管理中心 (1/2): 目標與 KPI</h2>
     <div class="content-area">
         <div class="table-layout">
             <table>
@@ -988,37 +1115,16 @@ body {
                         <td>3. 訂單準時達交率 (OTD)：> 98%<br>4. 入料品質合格率：> 99.5%</td>
                         <td>P1 / P4</td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Slide 18: Table -->
-<div class="slide-container" id="slide18">
-    <h2 class="slide-title">運籌管理中心 (2/2): 關鍵行動</h2>
-    <div class="content-area">
-        <div class="table-layout">
-            <table>
-                <thead>
-                    <tr>
-                        <th>BSC 維度</th>
-                        <th>策略目標 (Objectives)</th>
-                        <th>關鍵行動方案 (Action Plan 2026-2028)</th>
-                        <th>關聯主軸</th>
-                    </tr>
-                </thead>
-                <tbody>
                     <tr>
                         <td><strong>內部流程</strong></td>
-                        <td>【核心】建構智能製造基礎，實現卓越營運</td>
-                        <td>• <strong>【最優先：一號工程】</strong>導入 MES 與 IoT 系統<br>• 導入預測性維護 (TPM) 系統<br>• 與品管協同，實施嚴格的供應商分級管理，建立 AI 風險監控</td>
+                        <td>建構智能製造基礎，實現卓越營運</td>
+                        <td>5. MES/IoT 系統覆蓋率：100% (2026年底)<br>6. 設備綜合效率 (OEE)：提升 15%</td>
                         <td>P1</td>
                     </tr>
-                    <tr>
+                     <tr>
                         <td><strong>學習與成長</strong></td>
                         <td>培養數位化人才，建立數據驅動文化</td>
-                        <td>• <strong>引進 IE (工業工程) 與 MES 專業人才</strong><br>• 推動全員數位技能培訓與數據分析工作坊</td>
+                        <td>7. 關鍵數位職位（IE/MES）到位率：100%</td>
                         <td>P3</td>
                     </tr>
                 </tbody>
@@ -1027,9 +1133,25 @@ body {
     </div>
 </div>
 
+<!-- Slide 18: Styled_Bullet_Points (FIXED) -->
+<div class="slide-container" id="slide18">
+    <h2 class="slide-title">運籌管理中心 (2/2): 五大關鍵工作計畫</h2>
+    <div class="content-area">
+        <div class="bullet-list plan-list">
+            <ul>
+                <li><i class="fa-solid fa-1"></i><strong>MES 導入專案 (一號工程):</strong> 於 2026 年 Q4 完成 MES 系統選型與上線，實現生產數據即時可視化。</li>
+                <li><i class="fa-solid fa-2"></i><strong>AI 供應商風險監控平台導入:</strong> 建立供應商分級模型，於 2027 年 Q2 啟用 AI 入料品質風險預警。</li>
+                <li><i class="fa-solid fa-3"></i><strong>預測性維護 (TPM) 系統建置:</strong> 針對關鍵瓶頸設備導入 TPM 軟體，於 2027 年底前降低非計劃停機時間 10%。</li>
+                <li><i class="fa-solid fa-4"></i><strong>關鍵人才招募計畫:</strong> 於 2026 年 Q2 前引進至少 1 名 IE (工業工程) 專業人才與 1 名 MES 系統分析師。</li>
+                <li><i class="fa-solid fa-5"></i><strong>AI 需求預測模型建置:</strong> 導入 AI 預測模型，強化產銷協調 (S&OP)，於 2028 年將庫存周轉天數 (DSI) 降低 20%。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 <!-- Slide 19: Table -->
 <div class="slide-container" id="slide19">
-    <h2 class="slide-title">品質管理中心 (1/2): 主動預防的守護者</h2>
+    <h2 class="slide-title">品質管理中心 (1/2): 目標與 KPI</h2>
     <div class="content-area">
         <div class="table-layout">
             <table>
@@ -1044,14 +1166,26 @@ body {
                 <tbody>
                     <tr>
                         <td><strong>財務</strong></td>
-                        <td>降低品質失敗成本</td>
+                        <td>降低品質失敗成本 (COPQ)</td>
                         <td>1. 品質異常導致的成本 (COPQ)：下降 30%</td>
                         <td>P1</td>
                     </tr>
                     <tr>
                         <td><strong>客戶</strong></td>
-                        <td>確保極致的產品品質與合規性，提升品牌信任</td>
-                        <td>2. 客戶投訴率：維持低於現有優異水準<br>3. 重大國際稽核缺失數：0</td>
+                        <td>確保極致的產品品質與合規性</td>
+                        <td>2. 重大國際稽核缺失數：0</td>
+                        <td>P4</td>
+                    </tr>
+                    <tr>
+                        <td><strong>內部流程</strong></td>
+                        <td>建立全流程數位化品質管理體系</td>
+                        <td>3. 品質數據數位化覆蓋率：100%<br>4. AI 智慧稽核系統應用率：100%</td>
+                        <td>P1</td>
+                    </tr>
+                    <tr>
+                        <td><strong>永續</strong></td>
+                        <td>建立符合國際法規的永續品質標準</td>
+                        <td>5. 數位產品履歷 (DPP) 導入率：100% (歐盟)</td>
                         <td>P4</td>
                     </tr>
                 </tbody>
@@ -1060,42 +1194,25 @@ body {
     </div>
 </div>
 
-<!-- Slide 20: Table -->
+<!-- Slide 20: Styled_Bullet_Points (FIXED) -->
 <div class="slide-container" id="slide20">
-    <h2 class="slide-title">品質管理中心 (2/2): 關鍵行動</h2>
+    <h2 class="slide-title">品質管理中心 (2/2): 五大關鍵工作計畫</h2>
     <div class="content-area">
-        <div class="table-layout">
-            <table>
-                <thead>
-                    <tr>
-                        <th>BSC 維度</th>
-                        <th>策略目標 (Objectives)</th>
-                        <th>關鍵行動方案 (Action Plan 2026-2028)</th>
-                        <th>關聯主軸</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>內部流程</strong></td>
-                        <td>【核心】建立全流程數位化品質管理體系</td>
-                        <td>• 導入 LIMS (實驗室資訊管理系統) 並與 MES/ERP 整合<br>• 建立雲端異常管理資料庫與 AI 輔助 CAPA 系統<br>• 強化供應商源頭品質管理</td>
-                        <td>P1</td>
-                    </tr>
-                    <tr>
-                        <td><strong>內部流程 (永續)</strong></td>
-                        <td>建立符合國際法規的永續品質標準</td>
-                        <td>• <strong>【關鍵戰役】推動數位產品履歷 (DPP) 專案</strong>，確保符合歐盟法規</td>
-                        <td>P4</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="bullet-list plan-list">
+            <ul>
+                <li><i class="fa-solid fa-1"></i><strong>數位產品履歷 (DPP) 專案 (關鍵戰役):</strong> 於 2026 年底前完成 DPP 系統導入，確保符合歐盟法規。</li>
+                <li><i class="fa-solid fa-2"></i><strong>LIMS 導入與整合:</strong> 導入實驗室資訊管理系統 (LIMS)，並於 2027 年 Q1 完成與 MES/ERP 整合。</li>
+                <li><i class="fa-solid fa-3"></i><strong>AI 智慧稽核系統建置:</strong> 建立雲端異常管理資料庫，導入 AI 輔助 CAPA 系統，實現主動預防。</li>
+                <li><i class="fa-solid fa-4"></i><strong>供應商源頭品質管理強化:</strong> 與運籌中心協同，完成 100% 供應商分級管理與數位監控。</li>
+                <li><i class="fa-solid fa-5"></i><strong>跨領域專業培訓:</strong> 針對醫藥領域 (GMP/GDP) 進行專業知識培訓，確保研發中心轉型之品質合規性。</li>
+            </ul>
         </div>
     </div>
 </div>
 
 <!-- Slide 21: Table -->
 <div class="slide-container" id="slide21">
-    <h2 class="slide-title">有機植萃研發中心 (1/2): 頂尖綠色創新引擎</h2>
+    <h2 class="slide-title">有機植萃研發中心 (1/2): 目標與 KPI</h2>
     <div class="content-area">
         <div class="table-layout">
             <table>
@@ -1110,7 +1227,7 @@ body {
                 <tbody>
                     <tr>
                         <td><strong>財務/價值</strong></td>
-                        <td>提升研發投資回報率，開創新營收來源</td>
+                        <td>提升研發投資回報率，開創新營收</td>
                         <td>1. 來自近三年新品的營收佔比：> 30%</td>
                         <td>P2</td>
                     </tr>
@@ -1120,43 +1237,16 @@ body {
                         <td>2. 生髮藥品開發進度：成功上市<br>3. 核心技術專利申請數：達設定目標</td>
                         <td>P2</td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Slide 22: Table -->
-<div class="slide-container" id="slide22">
-    <h2 class="slide-title">有機植萃研發中心 (2/2): 關鍵行動</h2>
-    <div class="content-area">
-        <div class="table-layout">
-            <table>
-                <thead>
-                    <tr>
-                        <th>BSC 維度</th>
-                        <th>策略目標 (Objectives)</th>
-                        <th>關鍵行動方案 (Action Plan 2026-2028)</th>
-                        <th>關聯主軸</th>
-                    </tr>
-                </thead>
-                <tbody>
                     <tr>
                         <td><strong>內部流程</strong></td>
-                        <td>【核心】實現戰略躍升：跨足醫藥領域</td>
-                        <td>• <strong>取得藥商資格 (2026年)</strong><br>• 建立符合醫藥法規 (GMP/GCP) 的研發流程</td>
-                        <td>P2</td>
-                    </tr>
-                    <tr>
-                        <td><strong>內部流程</strong></td>
-                        <td>提升研發效率，加速創新商品化</td>
-                        <td>• 導入 AI 輔助安定性預測模型 (週期縮短 30%)</td>
+                        <td>實現戰略躍升並提升研發效率</td>
+                        <td>4. 取得藥商資格進度：100% (2026年)<br>5. 產品開發週期：縮短 30%</td>
                         <td>P1 / P2</td>
                     </tr>
                     <tr>
                         <td><strong>學習與成長</strong></td>
-                        <td>【最關鍵】解決知識斷層</td>
-                        <td>• <strong>【最優先】引進專任藥師</strong>與生物科技人才<br>• 建立 AI 化研發知識管理系統 (KMS)</td>
+                        <td>解決知識斷層，建立人才梯隊</td>
+                        <td>6. 關鍵研發人才（含藥師）到位率：100%</td>
                         <td>P3</td>
                     </tr>
                 </tbody>
@@ -1165,9 +1255,25 @@ body {
     </div>
 </div>
 
+<!-- Slide 22: Styled_Bullet_Points (FIXED) -->
+<div class="slide-container" id="slide22">
+    <h2 class="slide-title">有機植萃研發中心 (2/2): 五大關鍵工作計畫</h2>
+    <div class="content-area">
+        <div class="bullet-list plan-list">
+            <ul>
+                <li><i class="fa-solid fa-1"></i><strong>藥商資格取得專案 (關鍵戰役):</strong> 於 2026 年 Q3 前取得藥商資格，並建立符合醫藥法規 (GMP/GCP) 的研發流程。</li>
+                <li><i class="fa-solid fa-2"></i><strong>關鍵人才引進 (最優先):</strong> 於 2026 年 Q1 緊急引進至少 1 名 chuyên任藥師與 1 名生物科技人才，解決人力斷層。</li>
+                <li><i class="fa-solid fa-3"></i><strong>AI 化研發知識管理系統 (KMS) 建置:</strong> 於 2026 年底前導入 KMS，系統化保存核心技術，降低知識斷層風險。</li>
+                <li><i class="fa-solid fa-4"></i><strong>AI 加速研發平台導入:</strong> 導入 AI 輔助安定性預測模型與 PIF 文件生成，目標 2027 年將開發週期縮短 30%。</li>
+                <li><i class="fa-solid fa-5"></i><strong>Bio-DME 高性能造型品開發:</strong> 運用麥芽糊精/VP共聚物等，於 2027 年 Q2 推動 Bio-DME 永續造型品上市。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 <!-- Slide 23: Table -->
 <div class="slide-container" id="slide23">
-    <h2 class="slide-title">行政管理中心 (人資部 1/2): AI 策略 HRBP</h2>
+    <h2 class="slide-title">行政管理中心 (人資部 1/2): 目標與 KPI</h2>
     <div class="content-area">
         <div class="table-layout">
             <table>
@@ -1188,35 +1294,14 @@ body {
                     </tr>
                     <tr>
                         <td><strong>內部流程</strong></td>
-                        <td>【核心】從行政支援轉型為 AI 策略 HRBP</td>
+                        <td>從行政支援轉型為 AI 策略 HRBP</td>
                         <td>3. HR 行政流程自動化 (RPA) 比例：> 80%<br>4. 招募週期：縮短 30%</td>
                         <td>P1 / P3</td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Slide 24: Table -->
-<div class="slide-container" id="slide24">
-    <h2 class="slide-title">行政管理中心 (人資部 2/2): 關鍵行動</h2>
-    <div class="content-area">
-        <div class="table-layout">
-            <table>
-                <thead>
-                    <tr>
-                        <th>BSC 維度</th>
-                        <th>策略目標 (Objectives)</th>
-                        <th>關鍵行動方案 (Action Plan 2026-2028)</th>
-                        <th>關聯主軸</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
+                     <tr>
                         <td><strong>學習與成長</strong></td>
-                        <td>【最關鍵】解決人才斷層，推動組織轉型</td>
-                        <td>• <strong>【最優先】立即穩定並擴編 HR 團隊</strong><br>• 實施強制性 AI 培訓（每年至少 6 小時）<br>• <strong>人均年培訓時數：> 20 小時</strong> (遠高於現況 1.21 小時)</td>
+                        <td>解決人才斷層，推動組織轉型</td>
+                        <td>5. 人均年培訓時數：> 20 小時 (現 1.21h)<br>6. HR 團隊戰力到位率：100%</td>
                         <td>P3</td>
                     </tr>
                 </tbody>
@@ -1225,10 +1310,42 @@ body {
     </div>
 </div>
 
-<!-- Slide 25: Table -->
+<!-- Slide 24: Styled_Bullet_Points (FIXED) -->
+<div class="slide-container" id="slide24">
+    <h2 class="slide-title">行政管理中心 (人資部 2/2): 五大關鍵工作計畫 (A)</h2>
+    <div class="content-area">
+        <div class="bullet-list plan-list">
+            <ul>
+                <li><i class="fa-solid fa-1"></i><strong>HR 團隊擴編專案 (最優先):</strong> 於 2026 Q1 立即擴編 HR 團隊，補強策略規劃與數據分析能力，解決 2 人困境。</li>
+                <li><i class="fa-solid fa-2"></i><strong>RPA 流程自動化導入:</strong> 於 2026 Q3 優先導入 RPA 處理考勤、薪資等重複性工作，釋放 HR 80% 行政時間。</li>
+                <li><i class="fa-solid fa-3"></i><strong>關鍵人才招募專案 (P1/P2/P3):</strong> 啟動「綠色通道」，於 2026 年 Q2 前完成 IE/MES/藥師等關鍵職位招募。</li>
+                <li><i class="fa-solid fa-4"></i><strong>全員 AI 素養強制培訓:</strong> 規劃並執行全員 AI 培訓計畫，確保 2026 年起人均 AI 培訓時數 > 6 小時。</li>
+                <li><i class="fa-solid fa-5"></i><strong>數位化職能地圖建置:</strong> 運用 AI 進行人力盤點，建立動態技能圖譜，以支持組織轉型與人才發展。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 25: Styled_Bullet_Points (NEW) -->
 <div class="slide-container" id="slide25">
-    <h2 class="slide-title">行政管理中心 (法務部): 突破效率陷阱</h2>
-    <div class="content-area" style="flex-direction: column;">
+    <h2 class="slide-title">行政管理中心 (人資部 3/3): 五大關鍵工作計畫 (B)</h2>
+    <div class="content-area">
+        <div class="bullet-list plan-list">
+            <ul>
+                <li><i class="fa-solid fa-1"></i><strong>永續雇主品牌磁力計畫:</strong> 結合公司 ESG 優勢，重塑雇主品牌，提升對數位與綠色人才的吸引力。</li>
+                <li><i class="fa-solid fa-2"></i><strong>目標導向文化變革 (OCM):</strong> 推動組織變革管理，推動績效考核從「任務導向」轉向「目標導向」(OKR)。</li>
+                <li><i class="fa-solid fa-3"></i><strong>領導力發展計畫:</strong> 針對中高階主管啟動領導力培訓，強化其變革管理與數位領導能力。</li>
+                <li><i class="fa-solid fa-4"></i><strong>新人入職與留任優化:</strong> 重新設計新人 Onboarding 流程，提升入職 90 天內的留任率。</li>
+                <li><i class="fa-solid fa-5"></i><strong>內部培訓體系重構:</strong> 建立數位化學習平台 (LMS)，將人均年培訓時數從 1.21 小時提升至 20 小時以上。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 26: Table (NEW) -->
+<div class="slide-container" id="slide26">
+    <h2 class="slide-title">行政管理中心 (法務部 1/2): 目標與 KPI</h2>
+    <div class="content-area">
         <div class="table-layout">
             <table>
                 <thead>
@@ -1243,7 +1360,7 @@ body {
                     <tr>
                         <td><strong>風險控管</strong></td>
                         <td>確保營運合規，保護智慧財產權</td>
-                        <td>1. 重大廣告違規或法遵事件數：0<br>2.  core technology/brand intellectual property protection rate: 100%</td>
+                        <td>1. 重大廣告違規或法遵事件數：0<br>2. 核心技術/品牌智財保護率：100%</td>
                         <td>P4</td>
                     </tr>
                     <tr>
@@ -1255,15 +1372,28 @@ body {
                 </tbody>
             </table>
         </div>
-        <p class="chart-summary" style="text-align: left; width: 100%; margin-top: 20px; color: #f8fafc; font-size: 18px;">
-            <strong>關鍵行動：</strong>【最優先】進行徹底的<strong>流程再造 (BPR)</strong>，重新設計 AI 合約審閱流程，設定信任閾值。
-         </p>
     </div>
 </div>
 
-<!-- Slide 26: Table -->
-<div class="slide-container" id="slide26">
-    <h2 class="slide-title">行政管理中心 (能設環安/總務)</h2>
+<!-- Slide 27: Styled_Bullet_Points (NEW) -->
+<div class="slide-container" id="slide27">
+    <h2 class="slide-title">行政管理中心 (法務部 2/2): 五大關鍵工作計畫</h2>
+    <div class="content-area">
+        <div class="bullet-list plan-list">
+            <ul>
+                <li><i class="fa-solid fa-1"></i><strong>法務流程再造 (BPR) 專案 (最優先):</strong> 於 2026 Q2 徹底重組 AI 合約審閱流程，設定信任閾值，突破效率陷阱。</li>
+                <li><i class="fa-solid fa-2"></i><strong>AI 法律代理人 (Agent) 訓練:</strong> 建立「法務解題手冊」知識庫，於 2026 Q4 推出內部 AI 法律顧問。</li>
+                <li><i class="fa-solid fa-3"></i><strong>跨國法規監控常態化:</strong> 建立 AI 驅動的法規鑑別機制，重點監控中國、歐盟法規，確保零廣告違規。</li>
+                <li><i class="fa-solid fa-4"></i><strong>研發合規支援:</strong> 針對「生髮藥品」專案，提供全程法規導入與合規諮詢。</li>
+                <li><i class="fa-solid fa-5"></i><strong>智慧財產權 (IP) 佈局:</strong> 協助研發中心進行 Bio-DME、生髮藥品等核心技術的全球專利佈局。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 28: Table (NEW) -->
+<div class="slide-container" id="slide28">
+    <h2 class="slide-title">行政管理中心 (能設環安/總務 1/2): 目標與 KPI</h2>
     <div class="content-area">
         <div class="table-layout">
             <table>
@@ -1272,21 +1402,21 @@ body {
                         <th>部門</th>
                         <th>策略目標 (Objectives)</th>
                         <th>關鍵績效指標 (KPIs) (2028年目標)</th>
-                        <th>關鍵行動方案 (Action Plan)</th>
+                        <th>關聯主軸</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td><strong>EHS (能設環安)</strong></td>
                         <td>達成永續承諾 (RE100)，確保零職災環境</td>
-                        <td>1. 綠電轉供使用率：達成階段性目標<br>2. 職業災害頻率 (FR)：0</td>
-                        <td>• 落實 RE100 路徑圖，強化碳數據管理<br>• 完成冰水機變頻系統導入與儲能系統建置 (2026)</td>
+                        <td>1. 綠電轉供使用率：達成階段性目標<br>2. 職業災害頻率 (FR)：0<br>3. 單位產品能耗：下降 10%</td>
+                        <td>P1 / P4</td>
                     </tr>
                     <tr>
                         <td><strong>GA (行政總務)</strong></td>
                         <td>實現智慧化後勤支持與資產管理</td>
                         <td>1. 資產盤點數位化覆蓋率：100% (2026)<br>2. 行政流程自動化比例：> 70%</td>
-                        <td>• 導入數位化資產管理系統<br>• 建立「AI 決策平台」，自動偵測資產異常</td>
+                        <td>P1 / P4</td>
                     </tr>
                 </tbody>
             </table>
@@ -1294,17 +1424,34 @@ body {
     </div>
 </div>
 
-<!-- Slide 27: Section_Title -->
-<div class="slide-container" id="slide27">
-    <div class="section-title-layout">
-        <h2>階段五</h2>
-        <hr>
-        <p class="subtitle" style="font-size: 32px; color: #f8fafc;">投資成本與回報分析</p>
+<!-- Slide 29: Styled_Bullet_Points (NEW) -->
+<div class="slide-container" id="slide29">
+    <h2 class="slide-title">行政管理中心 (能設環安/總務 2/2): 五大關鍵工作計畫</h2>
+    <div class="content-area">
+        <div class="bullet-list plan-list">
+            <ul>
+                <li><i class="fa-solid fa-1"></i><strong>能源效率提升專案 (EHS):</strong> 於 2026 年 Q3 完成冰水機變頻系統導入與 50kw 儲能系統建置。</li>
+                <li><i class="fa-solid fa-2"></i><strong>數位化資產管理導入 (GA):</strong> 於 2026 年底導入數位資產系統與行動掃描盤點，覆蓋率 100%。</li>
+                <li><i class="fa-solid fa-3"></i><strong>RE100 路徑圖執行 (EHS):</strong> 落實 RE100 路徑圖，強化碳數據管理，導入 AI 能耗分析優化系統。</li>
+                <li><i class="fa-solid fa-4"></i><strong>AI 行政決策平台建置 (GA):</strong> 於 2027 年建立 AI 決策平台，自動偵測資產異常並生成行政表單。</li>
+                <li><i class="fa-solid fa-5"></i><strong>AI 影像辨識安全監控 (EHS):</strong> 探索導入 AI 影像辨識系統，監控高風險作業區，確保職業災害頻率為 0。</li>
+            </ul>
+        </div>
     </div>
 </div>
 
-<!-- Slide 28: Tiled_Text_With_Icons (4 tiles) -->
-<div class="slide-container" id="slide28">
+
+<!-- Slide 30: Section_Title -->
+<div class="slide-container" id="slide30">
+    <div class="section-title-layout">
+        <h2>階段五</h2>
+        <hr>
+        <p class="subtitle" style="font-size: clamp(20px, 2.5vw, 32px); color: #f8fafc;">投資成本與回報分析</p>
+    </div>
+</div>
+
+<!-- Slide 31: Tiled_Text_With_Icons (4 tiles) -->
+<div class="slide-container" id="slide31">
     <h2 class="slide-title">關鍵戰略投資 (2026-2028)</h2>
     <div class="content-area">
         <div class="tiled-content">
@@ -1332,8 +1479,8 @@ body {
     </div>
 </div>
 
-<!-- Slide 29: Table -->
-<div class="slide-container" id="slide29">
+<!-- Slide 32: Table (FIXED) -->
+<div class="slide-container" id="slide32">
     <h2 class="slide-title">投資回報 (ROI) 評估框架</h2>
     <div class="content-area" style="flex-direction: column;">
         <div class="table-layout">
@@ -1353,63 +1500,63 @@ body {
                         <td>高</td>
                         <td>極高</td>
                         <td>中期 (2-4年)</td>
-                        <td>基礎建設型</td>
+                        <td>基礎建設</td>
                     </tr>
                     <tr>
                         <td><strong>【最優先】人才與組織發展</strong></td>
                         <td>高</td>
                         <td>極高</td>
                         <td>中長期</td>
-                        <td>基礎能力型</td>
+                        <td>基礎能力</td>
                     </tr>
                     <tr>
                         <td>行政自動化 (RPA/AI/BPR)</td>
                         <td>中</td>
                         <td>高</td>
                         <td>短期 (1-2年)</td>
-                        <td>效率提升型</td>
+                        <td>效率提升</td>
                     </tr>
                     <tr>
                         <td>永續與能源設施</td>
                         <td>中高</td>
                         <td>中</td>
                         <td>中長期 (3-5年)</td>
-                        <td>效率/合規型</td>
+                        <td>效率/合規</td>
                     </tr>
                     <tr>
                         <td>綠色代工 (Green ODM/OEM)</td>
                         <td>中低</td>
                         <td>中高</td>
                         <td>中期 (2-4年)</td>
-                        <td>成長創新型</td>
+                        <td>成長創新</td>
                     </tr>
                     <tr>
                         <td><strong>醫藥領域開發 (生髮藥品)</strong></td>
                         <td>極高</td>
                         <td>極高</td>
                         <td>長期 (5年以上)</td>
-                        <td><strong>成長創新型 (高風險)</strong></td>
+                        <td><strong>成長創新 (高風險)</strong></td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <p class="chart-summary" style="text-align: center; width: 100%; margin-top: 20px; color: #f8fafc; font-size: 20px;">
+        <p class="chart-summary" style="text-align: center; width: 100%; margin-top: 20px; color: #f8fafc; font-size: clamp(14px, 1.56vw, 20px);">
             這是一個「先蹲後跳」的投資組合。 <strong>不投資的風險 (Risk of Inaction) 遠高於投資的風險。</strong>
          </p>
     </div>
 </div>
 
-<!-- Slide 30: Section_Title -->
-<div class="slide-container" id="slide30">
+<!-- Slide 33: Section_Title -->
+<div class="slide-container" id="slide33">
     <div class="section-title-layout">
         <h2>總結報告</h2>
         <hr>
-        <p class="subtitle" style="font-size: 32px; color: #f8fafc;">五年戰略藍圖</p>
+        <p class="subtitle" style="font-size: clamp(20px, 2.5vw, 32px); color: #f8fafc;">五年戰略藍圖</p>
     </div>
 </div>
 
-<!-- Slide 31: Two_Column_Tiled_Text -->
-<div class="slide-container" id="slide31">
+<!-- Slide 34: Two_Column_Tiled_Text -->
+<div class="slide-container" id="slide34">
     <h2 class="slide-title">核心情境診斷 (總結)</h2>
     <div class="content-area">
         <div class="two-column tiled">
@@ -1436,8 +1583,8 @@ body {
     </div>
 </div>
 
-<!-- Slide 32: Quote -->
-<div class="slide-container" id="slide32">
+<!-- Slide 35: Quote -->
+<div class="slide-container" id="slide35">
     <h2 class="slide-title">五年願景 (總結)</h2>
     <div class="content-area">
         <div class="quote-layout">
@@ -1447,8 +1594,8 @@ body {
     </div>
 </div>
 
-<!-- Slide 33: Tiled_Text_With_Icons (4 tiles) -->
-<div class="slide-container" id="slide33">
+<!-- Slide 36: Tiled_Text_With_Icons (4 tiles) -->
+<div class="slide-container" id="slide36">
     <h2 class="slide-title">未來三年策略主軸 (總結)</h2>
     <div class="content-area">
         <div class="tiled-content">
@@ -1476,8 +1623,8 @@ body {
     </div>
 </div>
 
-<!-- Slide 34: Q&A -->
-<div class="slide-container" id="slide34">
+<!-- Slide 37: Q&A -->
+<div class="slide-container" id="slide37">
     <div class="qa-layout">
         <h2 style="color: #f8fafc;">Questions?</h2>
         <p style="color: #cbd5e1;">Thank You</p>
@@ -1497,6 +1644,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let isThrottled = false; // 用於滾動節流
     let isSlideExpanded = false; // 標記是否有投影片處於展開狀態
 
+    // --- 新增：觸控變數 ---
+    let touchStartX = 0;
+    let touchStartY = 0;
+
     /**
      * 初始化簡報
      */
@@ -1505,10 +1656,14 @@ document.addEventListener('DOMContentLoaded', () => {
         showSlide(0); // 顯示第一張投影片
         
         // 綁定事件監聽
-        document.addEventListener('wheel', handleScroll);
-        document.addEventListener('keydown', handleKeys);
+        document.addEventListener('wheel', handleScroll); // 桌面滾輪
+        document.addEventListener('keydown', handleKeys); // 桌面鍵盤
         fsBtn.addEventListener('click', toggleFullscreen);
         document.addEventListener('fullscreenchange', updateFullscreenIcon);
+
+        // --- 新增：綁定觸控事件 ---
+        document.addEventListener('touchstart', handleTouchStart, { passive: true });
+        document.addEventListener('touchend', handleTouchEnd);
     }
 
     /**
@@ -1517,34 +1672,31 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function showSlide(index) {
         if (index < 0) {
-            index = 0; // 不循環，停在第一張
+            index = 0;
         } else if (index >= totalSlides) {
-            index = totalSlides - 1; // 不循環，停在最後一張
+            index = totalSlides - 1;
         }
 
         if (index === currentSlide && slides[currentSlide].classList.contains('active')) {
-             return; // 如果已經是當前頁面，不執行任何操作
+             return;
         }
 
-        // 隱藏當前的
         if (slides[currentSlide]) {
             slides[currentSlide].classList.remove('active');
         }
 
-        // 顯示新的
         currentSlide = index;
         const newSlide = slides[currentSlide];
         newSlide.classList.add('active');
 
-        // 更新頁碼
         updateCounter();
 
-        // 檢查新投影片是否已展開
         isSlideExpanded = newSlide.classList.contains('expanded');
 
-        // 滾動到投影片頂部
         if (!isSlideExpanded) {
-            window.scrollTo(0, newSlide.offsetTop - 20); // 20 是 body 的 padding
+            // 滾動到投影片頂部 (在 body 上，因為投影片是 grid item)
+             const bodyPaddingTop = parseInt(window.getComputedStyle(document.body).paddingTop, 10) || 20;
+            window.scrollTo(0, newSlide.offsetTop - bodyPaddingTop);
         }
     }
 
@@ -1560,23 +1712,19 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {WheelEvent} event
      */
     function handleScroll(event) {
-        // 如果正在節流或有投影片展開中，則不觸發換頁
-        if (isThrottled || isSlideExpanded) return;
+        if (isThrottled || isSlideExpanded) return; // 展開時不觸發
 
         isThrottled = true;
 
         if (event.deltaY > 0) {
-            // 向下滾動
             showSlide(currentSlide + 1);
         } else if (event.deltaY < 0) {
-            // 向上滾動
             showSlide(currentSlide - 1);
         }
 
-        // 設定節流時間，防止滾動過快
         setTimeout(() => {
             isThrottled = false;
-        }, 800); // 800毫秒的冷卻時間
+        }, 800);
     }
 
     /**
@@ -1584,8 +1732,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {KeyboardEvent} event
      */
     function handleKeys(event) {
-        // 如果有投影片展開中，則不觸發換頁
-        if (isSlideExpanded) return;
+        if (isSlideExpanded) return; // 展開時不觸發
 
         switch (event.key) {
             case 'ArrowRight':
@@ -1601,24 +1748,67 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- 新增：處理觸控開始 ---
+    /**
+     * @param {TouchEvent} event
+     */
+    function handleTouchStart(event) {
+        if (isSlideExpanded) return; // 展開時不觸發
+        
+        touchStartX = event.touches[0].clientX;
+        touchStartY = event.touches[0].clientY;
+    }
+
+    // --- 新增：處理觸控結束 (計算滑動) ---
+    /**
+     * @param {TouchEvent} event
+     */
+    function handleTouchEnd(event) {
+        if (isSlideExpanded) return; // 展開時不觸發
+
+        if (touchStartX === 0) return; // 沒有偵測到 touchstart
+
+        const touchEndX = event.changedTouches[0].clientX;
+        const touchEndY = event.changedTouches[0].clientY;
+
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        
+        // 重置
+        touchStartX = 0; 
+        touchStartY = 0;
+
+        // 檢查是否為有效的水平滑動（水平>垂直，且超過40px）
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 40) {
+            if (deltaX > 0) {
+                // 向右滑
+                showSlide(currentSlide - 1);
+            } else {
+                // 向左滑
+                showSlide(currentSlide + 1);
+            }
+        }
+    }
+
+
     /**
      * 檢查所有投影片是否內容溢出
      */
     function checkAllSlidesOverflow() {
         slides.forEach((slide) => {
-            // 暫時顯示以進行測量
             slide.style.display = 'flex';
             slide.style.visibility = 'hidden';
             slide.style.position = 'absolute';
+            // 暫時取消 aspect-ratio 以便正確測量
+            slide.style.aspectRatio = 'auto';
+            slide.style.height = '720px'; // 用一個固定高度來測量
 
             const contentArea = slide.querySelector('.content-area');
             let isOverflowing = false;
 
             if (contentArea) {
-                // 檢查 .content-area 的內容高度是否大於其可視高度
                 isOverflowing = contentArea.scrollHeight > contentArea.clientHeight;
             } else {
-                // 如果沒有 .content-area，檢查整個 slide
                 isOverflowing = slide.scrollHeight > slide.clientHeight;
             }
 
@@ -1626,19 +1816,20 @@ document.addEventListener('DOMContentLoaded', () => {
             slide.style.display = '';
             slide.style.visibility = '';
             slide.style.position = '';
+            slide.style.aspectRatio = '16 / 9';
+            slide.style.height = 'auto';
+
 
             if (isOverflowing) {
                 slide.classList.add('is-overflowing');
                 
-                // 創建展開按鈕
                 const expandBtn = document.createElement('button');
                 expandBtn.className = 'expand-toggle';
                 expandBtn.innerHTML = '展開內容 <i class="fa-solid fa-chevron-down"></i>';
                 slide.appendChild(expandBtn);
 
-                // 綁定按鈕點擊事件
                 expandBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // 防止事件冒泡
+                    e.stopPropagation();
                     toggleExpand(slide, expandBtn);
                 });
             }
@@ -1654,12 +1845,11 @@ document.addEventListener('DOMContentLoaded', () => {
         slide.classList.toggle('expanded');
         isSlideExpanded = slide.classList.contains('expanded');
 
-        // 更新按鈕文字
         if (isSlideExpanded) {
             btn.innerHTML = '收合內容 <i class="fa-solid fa-chevron-up"></i>';
-            // 滾動到展開的投影片頂部
+             const bodyPaddingTop = parseInt(window.getComputedStyle(document.body).paddingTop, 10) || 20;
             window.scrollTo({
-                top: slide.offsetTop - 20, // 20 是 body 的 padding
+                top: slide.offsetTop - bodyPaddingTop,
                 behavior: 'smooth'
             });
         } else {
@@ -1684,7 +1874,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * 當全螢幕狀態改變時（包括按 Esc 鍵），更新圖示
+     * 當全螢幕狀態改變時，更新圖示
      */
     function updateFullscreenIcon() {
         if (document.fullscreenElement) {
