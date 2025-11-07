@@ -3,621 +3,1589 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025 亞太區美容展 - 大陸廠商參訪計畫</title>
+    <title>亞太美容展 - 供應商採購策略計畫</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chosen Palette: Warm Neutral (Amber/Stone/Emerald) -->
-    <!-- Application Structure Plan: 採用標籤頁 (Tab) 結構。這將四大核心功能（廠商清單、參訪時程、交通指南、檢核清單）清晰分離，讓使用者能快速切換所需資訊。相較於單一長頁面，此結構更易於導航，使用者可專注於當前任務（例如：在「時程」頁面查看路線，然後切換到「廠商」頁面查閱該廠商的詳細資料）。廠商清單將依據 O'right 的核心需求（永續、自動化、包材）進行分類，以便快速鎖定目標。 -->
-    <!-- Visualization & Content Choices: 
-        1. 廠商資料 (來源: CSV/報告): 
-           - 目標: 組織/通知
-           - 呈現方式: HTML 卡片列表，依「永續包材」、「自動化設備」等主題分類。
-           - 互動: 點擊標籤頁顯示對應內容。
-           - 理由: 將大量廠商資訊結構化，易於查找。
-           - 技術: Vanilla JS (標籤頁切換), HTML/Tailwind (佈局)。
-        2. 參訪時程 (來源: 邏輯推導):
-           - 目標: 組織 (時間)
-           - 呈現方式: 依日期 (Day 1 @ AWE, Day 2 @ HKCEC) 劃分的時程表 (HTML 列表)。
-           - 互動: 無 (靜態資訊)。
-           - 理由: 提供清晰、可執行的時間路線圖。
-           - 技術: HTML/Tailwind。
-        3. 交通指南 (來源: 展會知識):
-           - 目標: 通知
-           - 呈現方式: 帶有圖標 (Unicode) 的結構化文字說明。
-           - 互動: 無。
-           - 理由: 清楚說明如何在兩展館間移動。
-           - 技術: HTML/Tailwind。
-        4. 檢核清單 (來源: CSV/報告):
-           - 目標: 組織 (任務)
-           - 呈現方式: 可折疊的 (details/summary) 分類清單，包含 HTML checkbox。
-           - 互動: 使用者可勾選項目（僅視覺）。
-           - 理由: 提供一個可實際操作的工具，確保參訪重點不遺漏。
-           - 技術: HTML/Tailwind。
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            background-color: #fdfbf6;
+            background-color: #f4f7f6;
         }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
+        .tab-button.active {
+            border-color: #004a99; /* Deep corporate blue */
+            color: #004a99;
+            background-color: #e6f0ff;
         }
-        [role="tab"] {
-            cursor: pointer;
-            padding: 0.75rem 1.5rem;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-        [role="tab"][aria-selected="true"] {
-            border-bottom-color: #059669; /* emerald-600 */
-            color: #047857; /* emerald-700 */
-            font-weight: 600;
-        }
-        [role="tabpanel"] {
+        .tab-panel {
             display: none;
-            animation: fadeIn 0.5s;
         }
-        [role="tabpanel"].active {
+        .tab-panel.active {
             display: block;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
         }
-        details > summary {
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 24px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 0.5rem;
+            position: relative;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
-            font-weight: 600;
-            margin-top: 1rem;
         }
-        details[open] > summary {
-            margin-bottom: 0.5rem;
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+        }
+        /* Checklist styles */
+        #checklist-container label {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #checklist-container label:hover {
+            background-color: #f1f3f5;
+        }
+        #checklist-container input[type="checkbox"] {
+            margin-right: 12px;
+            width: 1.25rem;
+            height: 1.25rem;
+            flex-shrink: 0;
+        }
+        .editable-notes {
+            width: 100%;
+            min-height: 150px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 0.95rem;
+            background-color: #fff;
+        }
+        .print-only {
+            display: none;
+        }
+        
+        /* Transport Map Styles */
+        .route-map {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .route-path {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .route-node {
+            flex-shrink: 0;
+            padding: 0.75rem 1.25rem;
+            border: 2px solid;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-align: center;
+            background-color: #fff;
+        }
+        .node-airport { border-color: #004a99; color: #004a99; }
+        .node-awe { border-color: #007bff; color: #007bff; }
+        .node-hkcec { border-color: #28a745; color: #28a745; }
+        .route-arrow {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            position: relative;
+            height: 2px;
+            background-color: #adb5bd;
+        }
+        .route-arrow::after {
+            content: '►';
+            position: absolute;
+            right: -8px;
+            font-size: 1.25rem;
+            color: #adb5bd;
+        }
+        .route-label {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            top: -25px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                font-family: 'Noto Sans TC', sans-serif;
+                background-color: #ffffff;
+            }
+            .no-print {
+                display: none;
+            }
+            .print-only {
+                display: block;
+            }
+            .tab-panel {
+                display: none !important;
+            }
+            #panel-checklist {
+                display: block !important;
+                box-shadow: none;
+                border: none;
+            }
+            #checklist-container {
+                page-break-inside: auto;
+            }
+            .modal {
+                position: static;
+                display: none !important;
+            }
+            .editable-notes {
+                border: 1px dashed #999;
+                background-color: #f9f9f9;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
         }
     </style>
 </head>
-<body class="bg-amber-50 text-stone-800">
+<body class="bg-gray-100 text-gray-800">
 
-    <div class="max-w-7xl mx-auto p-4 sm:p-8">
-        <header class="mb-8">
-            <h1 class="text-4xl font-bold text-emerald-800">2025 亞太區美容展：參訪作戰計畫</h1>
-            <p class="text-lg text-stone-700 mt-2">（大陸廠商重點版：排除台灣廠商）</p>
-            <p class="text-md text-stone-600 mt-4">本計畫已整合您提供的廠商清單 (CSV) 及展會報告，專注於 O'right 核心目標（永續、PCR、單一材質、自動化、特殊包材），並鎖定大陸地區供應商。
-            </p>
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-6 bg-white shadow rounded-lg p-6 no-print">
+            <h1 class="text-3xl font-bold text-blue-900">亞太美容展 - 供應商採購策略</h1>
+            <p class="mt-2 text-lg text-gray-600">依據最新稽核報告，整合漸進式染髮專案需求，制訂的五大策略模版。</p>
         </header>
 
         <!-- Tab Navigation -->
-        <div class="border-b border-stone-300 mb-6">
-            <nav class="-mb-px flex space-x-4" aria-label="Tabs" role="tablist" id="tab-nav">
-                <button class="whitespace-nowrap text-stone-600 hover:text-emerald-700" id="tab-vendors" role="tab" aria-selected="true" aria-controls="panel-vendors">
-                    <span class="text-xl">📋</span> 重點廠商清單
+        <div class="mb-6 bg-white rounded-lg shadow-sm no-print">
+            <nav class="flex flex-col sm:flex-row" aria-label="Tabs">
+                <button class="tab-button active text-left sm:text-center font-medium px-5 py-4 border-b-4 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-panel-id="panel-master-list">
+                    <span class="text-xl">①</span> 潛力廠商列表
                 </button>
-                <button class="whitespace-nowrap text-stone-600 hover:text-emerald-700" id="tab-schedule" role="tab" aria-selected="false" aria-controls="panel-schedule">
-                    <span class="text-xl">🗓️</span> 參訪時程與路線
+                <button class="tab-button text-left sm:text-center font-medium px-5 py-4 border-b-4 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-panel-id="panel-recommendations">
+                    <span class="text-xl">②</span> 推薦必看廠商
                 </button>
-                <button class="whitespace-nowrap text-stone-600 hover:text-emerald-700" id="tab-transport" role="tab" aria-selected="false" aria-controls="panel-transport">
-                    <span class="text-xl">🚌</span> 交通指南
+                <button class="tab-button text-left sm:text-center font-medium px-5 py-4 border-b-4 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-panel-id="panel-schedule">
+                    <span class="text-xl">③</span> 參訪動線
                 </button>
-                <button class="whitespace-nowrap text-stone-600 hover:text-emerald-700" id="tab-checklist" role="tab" aria-selected="false" aria-controls="panel-checklist">
-                    <span class="text-xl">✅</span> 參訪檢核表
+                <button class="tab-button text-left sm:text-center font-medium px-5 py-4 border-b-4 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-panel-id="panel-checklist">
+                    <span class="text-xl">④</span> 提問檢核表
+                </button>
+                <button class="tab-button text-left sm:text-center font-medium px-5 py-4 border-b-4 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-panel-id="panel-transport">
+                    <span class="text-xl">⑤</span> 交通與行李
                 </button>
             </nav>
         </div>
 
-        <!-- Tab Content -->
-        <div>
-            <!-- Panel 1: Vendor List -->
-            <section id="panel-vendors" role="tabpanel">
-                <p class="mb-6 text-stone-700">以下是根據您的關鍵字（永續、PCR、單一材質、自動化、鋁管、噴頭、木竹、調香）篩選出的重點大陸廠商名單，並附上背景資料。</p>
-                
-                <!-- Category 1: 永續包材 (PCR/單一材質/環保紙材) -->
-                <h2 class="text-2xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2 mb-4">
-                    主題一：永續包材 (PCR / 單一材質 / 環保紙材)
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-emerald-500">
-                        <h3 class="font-bold text-lg">Guangzhou DEVI Co Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：待確認 (Cosmopack 獎項入圍)</p>
-                        <p class="mt-2 text-sm"><strong class="text-emerald-600">必看理由：</strong>展會官方獎項入圍者。其「花卉再生環保香水包裝」直接命中「永續」與「調香」兩大主題。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>專注於創新環保包裝，入圍 2025 Cosmopack Asia Awards「永續發展」類別。</p>
+        <!-- Tab Content Panels -->
+        <main>
+            <!-- Panel 1: Master Vendor List -->
+            <div id="panel-master-list" class="tab-panel active">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-4">潛力廠商列表 (完整資料庫)</h2>
+                    <p class="mb-4 text-gray-600">此列表匯總了「稽核報告」與「原始 CSV」中的**所有**廠商 (共 39 家)。<br>
+                    「必看廠商」(<span class="bg-yellow-200 px-1">黃色標註</span>) 已根據您的指定更新為 19 家。</p>
+                    <div class="mb-4 no-print">
+                        <label for="category-filter" class="mr-2 font-semibold">依採購類別篩選：</label>
+                        <select id="category-filter" class="border border-gray-300 rounded-md p-2">
+                            <option value="all">所有類別 (共 39 家)</option>
+                            <option value="氣霧瓶">氣霧瓶 (Aerosol)</option>
+                            <option value="環保包材">環保包材 (Eco-Pack)</option>
+                            <option value="鋁瓶/鋁管">鋁瓶/鋁管 (Aluminum)</option>
+                            <option value="小噴量噴頭">小噴量噴頭 (Sprayer)</option>
+                            <option value="木梳">木梳 (Comb)</option>
+                            <option value="染髮代工">染髮代工 (Hair Dye OEM)</option>
+                            <option value="香氛技術">香氛技術 (Fragrance)</option>
+                            <option value="小mL充填機">小mL充填機 (Filler)</option>
+                        </select>
                     </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-emerald-500">
-                        <h3 class="font-bold text-lg">Meiyume (Hong Kong) Limited</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：待確認 (Cosmopack 獎項入圍)</p>
-                        <p class="mt-2 text-sm"><strong class="text-emerald-600">必看理由：</strong>永續發展獎項入圍。其「碳捕獲彩妝盤」顯示其在創新材料（將碳捕捉再利用）的領先地位，符合 O'right 碳中和理念。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>全球包裝與製造領導者，強調可持續包裝承諾。入圍 2025「永續發展」獎項。</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-emerald-500">
-                        <h3 class="font-bold text-lg">Queens Packaging Co Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：待確認 (Cosmopack 獎項入圍)</p>
-                        <p class="mt-2 text-sm"><strong class="text-emerald-600">必看理由：</strong>包裝設計獎項入圍。其「雙頭環保噴霧瓶」可能在結構或材料上（如單一材質）有所創新，值得關注。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>入圍 2025「包裝設計與材料」獎項。</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-emerald-500">
-                        <h3 class="font-bold text-lg">Hangzhou PESC Packaging Co., Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：11-C13</p>
-                        <p class="mt-2 text-sm"><strong class="text-emerald-600">必看理由：</strong>來自環保包材清單。明確提供 PET/HDPE 瓶與環保軟管，是 PCR 材料的潛在供應商。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>杭州派思克包裝，專注於 PET/HDPE 瓶、環保軟管。為製造商，擁有吹瓶機。 (來源: 環保包材.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-emerald-500">
-                        <h3 class="font-bold text-lg">Guangdong Hsu Bor Color Printing</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：5-J17</p>
-                        <p class="mt-2 text-sm"><strong class="text-emerald-600">必看理由：</strong>環保紙類包材。O'right 需要高品質、環保（FSC）的紙盒供應商。此廠規模大（約1000人）且認證齊全。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>廣東忠柏彩印。專注紙盒、禮盒。認證：ISO9001/14001, SA8000, FSC, G7。 (來源: 環保包材.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-emerald-500">
-                        <h3 class="font-bold text-lg">Guangzhou Idealpak Co., Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：7-T03</p>
-                        <p class="mt-2 text-sm"><strong class="text-emerald-600">必看理由：</strong>來自環保包材清單的潛在供應商，需現場確認其在 PCR 或單一材質的具體產品。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>(CSV中資料不詳，需現場訪談) (來源: 環保包材.csv)</p>
+                    <div id="master-vendor-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Vendor cards will be dynamically injected here by JavaScript -->
                     </div>
                 </div>
+            </div>
 
-                <!-- Category 2: 玻璃 & 鋁製品 (無接縫鋁管) -->
-                <h2 class="text-2xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2 mb-4 mt-8">
-                    主題二：玻璃 & 鋁製品 (含無接縫鋁管)
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                        <h3 class="font-bold text-lg">Ningbo Everflare Packaging Co., Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：11-D03</p>
-                        <p class="mt-2 text-sm"><strong class="text-blue-600">必看理由：</strong>明確針對「無接縫鋁管」需求。O'right 目前鋁管接縫明顯，此為重點開發項目。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>寧波拓輝包裝。產品含鋁瓶、鋁罐、鋁管。有 ISO9001/14000 認證及自動化鋁瓶產線。 (來源: 無接縫鋁管.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                        <h3 class="font-bold text-lg">Selective Packaging Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：7-N17</p>
-                        <p class="mt-2 text-sm"><strong class="text-blue-600">必看理由：</strong>一站式環保包材。產品線橫跨鋁罐/瓶、玻璃瓶，並強調竹木包裝，完全符合 O'right 的多元環保材質需求。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>規模約 51-100 人，年營收高，出口歐盟。秉持綠色環保理念，專注竹木包裝。 (來源: 環保包材.csv)</p>
-                    </div>
-                </div>
-
-                <!-- Category 3: 自動化設備 (小mL數充填機) -->
-                <h2 class="text-2xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2 mb-4 mt-8">
-                    主題三：自動化設備 (小mL數充填機)
-                </h2>
-                <p class="mb-4 text-stone-700">此區廠商皆來自您的「小mL數充填機」清單，目標是尋找高CP值、佔地小、高效率（>50支/分）、自動化的設備。攤位皆在 9 號館，可集中參訪。</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-gray-500">
-                        <h3 class="font-bold text-lg">Shanghai Gieni Industries Co.,Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：9-D20</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>品牌 GIENICOS。 (來源: 小mL數充填機.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-gray-500">
-                        <h3 class="font-bold text-lg">Guangzhou Fuluke Cosmetics Equipment</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：9-D22</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>廣州弗魯克。 (來源: 小mL數充填機.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-gray-500">
-                        <h3 class="font-bold text-lg">Guangzhou Xinyou Chemical Machinery</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：9-C24</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>廣州新酉。 (來源: 小mL數充填機.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-gray-500">
-                        <h3 class="font-bold text-lg">Sina Ekato Chemical Machinery Co.,Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：9-F12</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>新浪愛卡托。 (來源: 小mL數充填機.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-gray-500">
-                        <h3 class="font-bold text-lg">LTB Machinery Co.,Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：9-C23</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>(來源: 小mL數充填機.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-gray-500">
-                        <h3 class="font-bold text-lg">Guangzhou Sipuxin Light Industry</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：9-G29</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>廣州斯普鑫。 (來源: 小mL數充填機.csv)</p>
-                    </div>
-                </div>
-
-                <!-- Category 4: 噴頭 & 壓頭 (小噴量/長噴頭) -->
-                <h2 class="text-2xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2 mb-4 mt-8">
-                    主題四：噴頭 & 壓頭 (小噴量 / 長噴頭)
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-sky-500">
-                        <h3 class="font-bold text-lg">Yuyao Greenyard Tools Co., Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：5-A19</p>
-                        <p class="mt-2 text-sm"><strong class="text-sky-600">必看理由：</strong>明確針對「小噴量長噴頭」需求。用於解決養髮液滲漏與噴量過大問題。此廠為製造商，有模具設計能力。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>寧波綠亞噴霧。製造商，有 ISO 9001，70% 出口。具備模具設計、注塑、自動化裝配線。 (來源: 小噴量長噴頭.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-sky-500">
-                        <h3 class="font-bold text-lg">Foshan Colorpump Plastic Products</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：5-A27</p>
-                        <p class="mt-2 text-sm"><strong class="text-sky-600">必看理由：</strong>同為「小噴量長噴頭」目標廠商。需現場比較其噴量控制、防漏設計及使用 PCR 的能力。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>佛山彩泵塑料。 (來源: 小噴量長噴頭.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-sky-500">
-                        <h3 class="font-bold text-lg">Rose Pack (Shanghai) Technology Co.</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：9-A30</p>
-                        <p class="mt-2 text-sm"><strong class="text-sky-600">必看理由：</strong>同時出現在「無接縫鋁管」和「噴頭」相關清單中，可能提供包材+噴頭的整合方案。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>玫妝（上海）實業。 (來源: 無接縫鋁管.csv)</p>
-                    </div>
-                </div>
-
-                <!-- Category 5: 竹/木製品 (木梳) -->
-                <h2 class="text-2xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2 mb-4 mt-8">
-                    主題五：竹 / 木製品 (木梳)
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-600">
-                        <h3 class="font-bold text-lg">Bymace Hair Beauty Co., Ltd.</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：3G-G4D</p>
-                        <p class="mt-2 text-sm"><strong class="text-yellow-700">必看理由：</strong>明確針對「木梳」需求。目標是開發高品質、天然實木、無漆塗層的木梳，以取代高價台廠。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>ByMACE 美髮美容。自稱製造商，產品含美髮刷、梳子。 (來源: 木梳.csv)</p>
-                    </div>
-                </div>
-
-                <!-- Category 6: OEM/ODM & 調香 (氣霧瓶/染髮/香氛) -->
-                <h2 class="text-2xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2 mb-4 mt-8">
-                    主題六：OEM/ODM & 調香 (氣霧瓶 / 染髮 / 香氛)
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-                        <h3 class="font-bold text-lg">YAC Chemicals Limited</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：10-J14</p>
-                        <p class="mt-2 text-sm"><strong class="text-purple-600">必看理由：</strong>「氣霧瓶」代工首選。規模大（年產 8000 萬件），有二元噴霧線，具備 Bio-based 認證的潛力，且有 Walmart 等大廠合作經驗。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>創新智慧氣霧劑製造商。9條高速自動線+2條二元線。有 GMPC, ISO22716, FDA, FSC 等認證。 (來源: 氣霧瓶.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-                        <h3 class="font-bold text-lg">Ausmetics Daily Chemicals (Guangzhou)</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：待確認 (Cosmopack 獎項入圍)</p>
-                        <p class="mt-2 text-sm"><strong class="text-purple-600">必看理由：</strong>永續 OEM 廠商。其「無水清潔珍珠」入圍永續獎項，顯示其在創新及環保劑型開發的能力，符合 O'right 理念。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>入圍 2025「永續發展」獎項。</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-                        <h3 class="font-bold text-lg">Guangdong Leiqi Cosmetics Co., Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：10-M20</p>
-                        <p class="mt-2 text-sm"><strong class="text-purple-600">必看理由：</strong>「香氛(仿香技術)」目標廠商。規模大（7萬m²廠房），有 GMP 標準，需現場確認其仿香技術（GC-MS）及小批量訂製能力。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>OEM/ODM 企業，有30多條產線，具 ISO9001, ISO22716 & GMPC 認證。 (來源: 香氛(仿香技術).csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-                        <h3 class="font-bold text-lg">Guangzhou Livepro Beauty Cosmetics</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：1E-Q7B</p>
-                        <p class="mt-2 text-sm"><strong class="text-purple-600">必看理由：</strong>「家用染髮代工」目標廠商。具備多項 ISO 認證，可作為染髮產品線的潛在代工廠。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>OEM/ODM/OBM。認證：ISO22716, GMP, ISO9001, ISO14001, ISO 45001。 (來源: 家用染髮代工.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-                        <h3 class="font-bold text-lg">Guangdong Peng Wei Fine Chemical</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：10-J26</p>
-                        <p class="mt-2 text-sm"><strong class="text-purple-600">必看理由：</strong>「家用染髮代工」及氣霧瓶相關廠商。與 YAC (10-J14) 在同一館，可一併比較。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>(來源: 家用染髮代工.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-                        <h3 class="font-bold text-lg">Guangzhou Nongcai Cosmetics Co.,Ltd</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：5F-C1B</p>
-                        <p class="mt-2 text-sm"><strong class="text-purple-600">必看理由：</strong>「家用染髮代工」目標廠商。專注美髮產品 OEM，可作為備選。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>批發美髮產品，OEM，自有品牌。 (來源: 家用染髮代工.csv)</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-                        <h3 class="font-bold text-lg">Guangzhou Bluesky Chemical Tech</h3>
-                        <p class="text-sm font-medium text-stone-500">攤位號：待確認 (Cosmoprof 獎項入圍)</p>
-                        <p class="mt-2 text-sm"><strong class="text-purple-600">必看理由：</strong>彩妝獎項入圍。雖然 O'right 專注髮膚，但此廠商在彩妝領域的創新（如滋養型底油）也值得關注。</p>
-                        <p class="mt-2 text-sm"><strong>背景資料：</strong>入圍 2025「彩妝產品」獎項。</p>
-                    </div>
-                </div>
-
-            </section>
-
-            <!-- Panel 2: Schedule -->
-            <section id="panel-schedule" role="tabpanel">
-                <p class="mb-6 text-stone-700">更新後的 3.5 天行程 (11/11 週二 ~ 11/14 週五)，已將 Alfaparf 會議及葛董返台行程更新至 11/13 (四)。</p>
-
-                <div class="space-y-8">
-                    <!-- Day 1: 11/11 (Tue) PM -->
-                    <div>
-                        <h2 class="text-3xl font-bold text-emerald-700">Day 1：11/11 (二) PM | 亞洲國際博覽館 (AWE)</h2>
-                        <p class="text-lg text-stone-600">主要目標：[抵達] 鎖定設備 & 關鍵 OEM</p>
-                        <div class="mt-4 border-l-4 border-emerald-500 pl-4 space-y-4">
-                            <div>
-                                <h3 class="text-xl font-semibold">13:00 - 14:00：抵達 AWE & 領證</h3>
-                                <p>中午抵達香港機場 (HKG)，搭乘機場快線 (1站) 或步行至 AWE，領取證件並規劃路線。</p>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-semibold">14:00 - 15:30：[重點] 自動化設備 (9號館)</h3>
-                                <p><strong>路線：</strong>此館為「小mL數充填機」集中營。依序參訪 9-A30 (Rose Pack) → 9-C23 (LTB) → 9-C24 (Xinyou) → 9-D20 (Gieni) → 9-D22 (Fuluke) → 9-F12 (Sina Ekato) → 9-G29 (Sipuxin)。</p>
-                                <p><strong>重點：</strong>攜帶檢核表，快速比較各家機台的效率、佔地、自動化程度和CP值。</p>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-semibold">15:30 - 17:00：[重點] OEM & 調香 (10號館)</h3>
-                                <p><strong>路線：</strong>10-J14 (YAC Chemicals) → 10-J26 (Guangdong Peng Wei) → 10-M20 (Guangdong Leiqi)。</p>
-                                <p><strong>重點：</strong>YAC (氣霧瓶) 和 Leiqi (仿香) 是重點。確認 Bio-based 氣體和 GC-MS 技術。</p>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-semibold">17:00 - 18:00：[重點] 鋁管 & 包材 (11號館)</h3>
-                                <p><strong>路線：</strong>11-C13 (Hangzhou PESC) → 11-D03 (Ningbo Everflare)。</p>
-                                <p><strong>重點：</strong>Ningbo Everflare (11-D03) 是「無接縫鋁管」的關鍵廠商，務必攜帶樣品或圖紙詳談。</p>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Panel 2: Recommendations -->
+            <div id="panel-recommendations" class="tab-panel">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-4">推薦必看廠商 (共 19 家)</h2>
+                    <p class="mb-6 text-gray-600">依據「漸進式染髮」專案需求，以及您的額外指定，篩選出的首要拜訪名單。</p>
                     
-                    <!-- Day 2: 11/12 (Wed) Full Day -->
-                    <div>
-                        <h2 class="text-3xl font-bold text-emerald-700">Day 2：11/12 (三) 全天 | 亞洲國際博覽館 (AWE)</h2>
-                        <p class="text-lg text-stone-600">主要目標：[深度] 永續包材 & 特殊噴頭</p>
-                        <div class="mt-4 border-l-4 border-emerald-300 pl-4 space-y-4">
-                            <div>
-                                <h3 class="text-xl font-semibold">10:00 - 12:00：[重點] 噴頭 & 紙包材 (5號館)</h3>
-                                <p><strong>路線：</strong>5-A19 (Yuyao Greenyard) → 5-A27 (Foshan Colorpump) → 5-J17 (Guangdong Hsu Bor)。</p>
-                                <p><strong>重點：</strong>集中解決「小噴量長噴頭」問題 (Greenyard)，並洽談高品質「環保紙盒」 (Hsu Bor)。</p>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-semibold">12:00 - 13:00：午餐 & 休息</h3>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-semibold">13:00 - 15:00：[重點] 環保包材 & 獎項 (7號館)</h3>
-                                <p><strong>路線：</strong>7-N17 (Selective Packaging) → 7-T03 (Guangzhou Idealpak)。</p>
-                                <p><strong>重點：</strong>Selective (7-N17) 是重點，涵蓋鋁、玻璃、竹木，符合 O'right 多元材質需求。</p>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-semibold">15:00 - 17:00：AWE 獎項入圍者 & 緩衝</h3>
-                                <p><strong>路線：</strong>尋找 AWE (Cosmopack) 的獎項入圍者，如 Guangzhou DEVI, Meiyume, Ausmetics。並針對 Day 1 廠商做初步複訪或補訪。</p>
-                            </div>
+                    <div class="space-y-8">
+                        <!-- Section 1: 專案核心廠商 (新報告) -->
+                        <h3 class="text-xl font-semibold text-gray-900 border-b-2 border-blue-300 pb-2">1. 專案核心 A+ 級廠商 (漸進式染髮專案)</h3>
+                        
+                        <div class="bg-blue-50 border-l-4 border-blue-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-blue-900">Guangzhou Colornow (廣州卡樂) - <span class="text-gray-700 font-medium">3G-L1A (HKCEC)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：首選代工夥伴】</strong></p>
+                            <p class="mt-1 text-gray-700">這是承接「漸進式染髮」專案的理想夥伴。其 GMPC 認證、每月 1,000 噸的產能，以及服務 **DISNEY** 的經驗，證明他們有能力處理 PPD-free, SLES-free 等複雜且法規嚴格的「潔淨配方」。</p>
+                        </div>
+                        
+                        <div class="bg-blue-50 border-l-4 border-blue-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-blue-900">Guangzhou Boyan Meet (廣州博妍米特) - <span class="text-gray-700 font-medium">3G-N2C (HKCEC)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：首選染膏鋁管】</strong></p>
+                            <p class="mt-1 text-gray-700">與專案 100% 契合。他們是 **L’Oréal, Wella, Schwarzkopf** 的現行染膏管供應商。這表明他們已完全掌握染膏鋁管所需的「內部塗層」和「氣密性」關鍵技術，能確保您配方的穩定性。</p>
+                        </div>
+
+                        <div class="bg-blue-50 border-l-4 border-blue-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-blue-900">AILUSI / Guangzhou Ailusi (廣州艾路絲) - <span class="text-gray-700 font-medium">9-D23 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：「自建產線」的關鍵】</strong></p>
+                            <p class="mt-1 text-gray-700">這是「製造 vs 購買」決策的核心。報告中唯一被標記能客製化「每分鐘產出 50 支以上」的充填機廠商。必須現場洽談，獲取完整報價，以作為內部自建 GMPC 產線的財務模型依據。</p>
+                        </div>
+
+                        <!-- Section 2: 關鍵包材與設備 (原始+新報告) -->
+                        <h3 class="text-xl font-semibold text-gray-900 border-b-2 border-blue-300 pb-2 mt-8">2. 關鍵包材與設備 A 級廠商</h3>
+                        
+                        <div class="bg-gray-50 border-l-4 border-gray-500 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-gray-900">YAC Chemicals Limited (雅克化工) - <span class="text-gray-700 font-medium">10-J14 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：BOV 氣霧瓶技術】</strong></p>
+                            <p class="mt-1 text-gray-700">服務 Walmart, Carrefour 的大廠。關鍵在於其「二元噴霧灌裝線」(BOV)。對於溫和、易氧化的配方 (如染髮專案)，BOV 能將料體與推進劑完全隔離，是保護高端配方的理想技術。</p>
+                        </div>
+
+                        <div class="bg-gray-50 border-l-4 border-gray-500 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-gray-900">Shanghai Ying Yu Packaging (上海盈碩) - <span class="text-gray-700 font-medium">6-E08 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：Tier 1 戰略夥伴】</strong></p>
+                            <p class="mt-1 text-gray-700">規模巨大 (1,500 人)，客戶為 **L’Oréal, Shiseido, Dior**。這是最高層級的「戰略夥伴」級供應商，具備 SA8000 社會責任認證，適合未來長期、大規模的合作項目。</p>
+                        </div>
+
+                        <div class="bg-gray-50 border-l-4 border-gray-500 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-gray-900">Guangdong Hsu Bor (廣東忠柏) - <span class="text-gray-700 font-medium">5-J17 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：高端紙盒工藝】</strong></p>
+                            <p class="mt-1 text-gray-700">千人規模的大型紙品廠，具備 FSC, G7 認證。專注於「燙印壓花、3D 表面處理」技術。是尋找「無膠/少膠化」與「環保油墨」紙盒方案的 A 級目標。</p>
+                        </div>
+
+                        <div class="bg-gray-50 border-l-4 border-gray-500 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-gray-900">Shanghai Gieni Industries (GIENICOS) - <span class="text-gray-700 font-medium">9-D20 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：「自建產線」的備選】</strong></p>
+                            <p class="mt-1 text-gray-700">原始 CSV 檔的 A 級目標。需與 AILUSI (9-D23) 進行現場比較，評估其「小 mL 數充填機」的規格、佔地面積和成本競爭力，作為「製造 vs 購買」決策的備選方案。</p>
+                        </div>
+
+                         <div class="bg-gray-50 border-l-4 border-gray-500 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-gray-900">Artech Beauty (泰客環保包裝) - <span class="text-gray-700 font-medium">7-L06 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：環保形象契合】</strong></p>
+                            <p class="mt-1 text-gray-700">擁有 FSC, GRS, PCR 關鍵永續認證。最能匹配「竹炭」專案所代表的天然、環保品牌形象。</p>
+                        </div>
+
+                        <!-- Section 3: 採購缺口與待確認 (新報告) -->
+                        <h3 class="text-xl font-semibold text-gray-900 border-b-2 border-yellow-400 pb-2 mt-8">3. B 級 - 關鍵缺口待確認 (RFI)</h3>
+
+                        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-yellow-900">Yuyao Greenyard (寧波綠亞) - <span class="text-gray-700 font-medium">5-A19 (AWE)</span></h4>
+                            <h4 class="text-lg font-bold text-yellow-900">Foshan Colorpump (佛山彩泵) - <span class="text-gray-700 font-medium">5-A27 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【訪談目標：小噴量噴頭缺口】</strong></p>
+                            <p class="mt-1 text-gray-700">這兩家是原始 CSV 檔的目標。稽核報告指出，目前**沒有任何廠商**能證實滿足「噴量 0.13mL 以下」的精密規格。必須現場發出 RFI (信息邀請書)，要求這兩家廠商提供精密噴頭的「規格書、樣品、劑量測試報告」。</p>
+                        </div>
+
+                        <!-- **SECTION 4: User-selected vendors (Batch 1)** -->
+                        <h3 class="text-xl font-semibold text-gray-900 border-b-2 border-green-400 pb-2 mt-8">4. B 級 - 額外指定廠商 (第 1 批)</h3>
+                        
+                        <div class="bg-green-50 border-l-4 border-green-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-green-900">廣東鵬偉精細化工 - <span class="text-gray-700 font-medium">10-J26 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：列入指定拜訪名單】</strong></p>
+                            <p class="mt-1 text-gray-700">YAC 集團的製造基地，同時出現在「氣霧瓶」和「染髮代工」清單中。需現場釐清其與 YAC (10-J14) 的分工，以及 BOV 產線的實際位置。</p>
+                        </div>
+                        
+                        <div class="bg-green-50 border-l-4 border-green-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-green-900">Guangzhou Lanjing Glass (廣州藍晶) - <span class="text-gray-700 font-medium">7-R29 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：列入指定拜訪名單】</strong></p>
+                            <p class="mt-1 text-gray-700">玻璃瓶製造商，規模約 400 人，年產能 10 億支。需現場確認其高端化妝品玻璃瓶的品質、厚度與工藝細節。</p>
+                        </div>
+
+                        <div class="bg-green-50 border-l-4 border-green-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-green-900">Selective Packaging Ltd - <span class="text-gray-700 font-medium">7-N17 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：列入指定拜訪名單】</strong></p>
+                            <p class="mt-1 text-gray-700">稽核報告B級廠商。專注於「竹木包裝」與鋁罐，主要出口歐盟。需現場確認其竹木材料是否能提供 FSC 認證，以契合「竹炭」專案形象。</p>
+                        </div>
+
+                        <div class="bg-green-50 border-l-4 border-green-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-green-900">Hangzhou PESC Packaging (杭州派思克) - <span class="text-gray-700 font-medium">11-C13 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：列入指定拜訪名單】</strong></p>
+                            <p class="mt-1 text-gray-700">環保包材廠商 (50-100 人)。主力產品為 PET/HDPE 瓶與環保軟管。需現場確認其「環保軟管」的 PCR 比例與印刷工藝。</p>
+                        </div>
+
+                        <div class="bg-green-50 border-l-4 border-green-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-green-900">Nantong Global Packaging (南通環球) - <span class="text-gray-700 font-medium">9-G04 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：列入指定拜訪名單】</strong></p>
+                            <p class="mt-1 text-gray-700">玻璃瓶製造商，日產 > 150 萬支。主力為香水/指甲油玻璃瓶。需現場確認其工藝是否適用於高端護膚品。</p>
+                        </div>
+
+                        <!-- **NEW SECTION 5: User-selected vendors (Batch 2)** -->
+                        <h3 class="text-xl font-semibold text-gray-900 border-b-2 border-green-400 pb-2 mt-8">5. B 級 - 額外指定廠商 (第 2 批)</h3>
+
+                        <div class="bg-green-50 border-l-4 border-green-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-green-900">Ningbo Everflare (寧波拓輝) - <span class="text-gray-700 font-medium">11-D03 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：列入指定拜訪名單】</strong></p>
+                            <p class="mt-1 text-gray-700">稽核報告B級廠商 (10,000m² 工廠)。需現場確認其「無接縫鋁管」的工藝細節，並與 A+ 級的 Boyan Meet 進行比較。</p>
+                        </div>
+
+                        <div class="bg-green-50 border-l-4 border-green-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-green-900">Haifeng Packaging (海豐包裝) - <span class="text-gray-700 font-medium">5-F02 (AWE)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：列入指定拜訪名單】</strong></p>
+                            <p class="mt-1 text-gray-700">稽核報告B級廠商 (>20,000m² 廠房, 70 台注塑機)。需現場確認其「細霧噴霧器」是否能滿足「0.13mL 以下」的精密規格。</p>
+                        </div>
+
+                        <div class="bg-green-50 border-l-4 border-green-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-green-900">Guangzhou Xuelei (廣州雪蕾) - <span class="text-gray-700 font-medium">1E-X3B (HKCEC)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：列入指定拜訪名單】</strong></p>
+                            <p class="mt-1 text-gray-700">稽核報告B級廠商 (40,000m² 香氛園區)。需現場洽談「仿香技術」，並確認是否配備 GC-MS 分析儀以及調香師團隊資歷。</p>
+                        </div>
+
+                        <div class="bg-green-50 border-l-4 border-green-600 p-5 rounded-r-lg shadow-sm">
+                            <h4 class="text-lg font-bold text-green-900">Huzhou Yufan (湖州御梵) - <span class="text-gray-700 font-medium">1E-X3A (HKCEC)</span></h4>
+                            <p class="mt-2 text-gray-700"><strong class="text-red-600">【必看理由：列入指定拜訪名單】</strong></p>
+                            <p class="mt-1 text-gray-700">稽核報告B級廠商 (年產 1.5 億 PCS)。需現場洽談「仿香技術」，並了解其「超聲波香水催陳系統」專利對香氣穩定的具體幫助。</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 3: Schedule & Route -->
+            <div id="panel-schedule" class="tab-panel">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-6 border-b-2 pb-3">參訪時程與動線 (11/11 ~ 11/14) - V9 版</h2>
+                    <p class="mb-4 text-gray-700">
+                        <span class="font-bold">展覽日期：</span> 2025 年 11 月 11 日 (二) 至 11 月 14 日 (五)
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <h3 class="font-semibold text-blue-700">AWE (亞洲國際博覽館 - 機場旁)</h3>
+                            <p class="text-sm text-gray-600">11 月 11 日至 13 日 (供應鏈：包材、設備、原料)</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                            <h3 class="font-semibold text-green-700">HKCEC (香港會議展覽中心 - 灣仔)</h3>
+                            <p class="text-sm text-gray-600">11 月 12 日至 14 日 (成品區：代工、品牌)</p>
                         </div>
                     </div>
+                    <p class="mt-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-800 rounded-md">
+                        <span class="font-bold">關鍵提醒：</span> 兩地相隔甚遠 (交通 60-90 分鐘)。<span class="underline">必須分天規劃</span>。本行程將 AWE 廠商集中在 D1/D2，HKCEC 廠商集中在 D3。
+                    </p>
 
-                    <!-- Day 3: 11/13 (Thu) Full Day -->
-                    <div>
-                        <h2 class="text-3xl font-bold text-emerald-700">Day 3：11/13 (四) | HKCEC 成品 & 關鍵會議 (葛董離港日)</h2>
-                        <p class="text-lg text-stone-600">主要目標：[成品] 染髮、木梳 & [重點] Alfaparf 會議</p>
-                        <div class="mt-4 border-l-4 border-sky-500 pl-4 space-y-4">
-                            <div>
-                                <h3 class="text-xl font-semibold">09:30 - 12:30：香港會議展覽中心 (HKCEC)</h3>
-                                <p><strong>策略：</strong>上午集中火力在 HKCEC，解決成品區的目標。</p>
-                                <p><strong>路線：</strong>1E-Q7B (Guangzhou Livepro, 染髮) → 3G-G4D (Bymace Hair Beauty, 木梳) → 5F-C1B (Guangzhou Nongcai, 染髮)。</p>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-semibold">12:30 - 13:00：午餐 / 緩衝</h3>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-semibold text-red-700">13:00 - 14:00：[!! 關鍵會議 - Alfaparf !!]</h3>
-                                <p><strong>地點：</strong>(與 Alfaparf 約定之地點，可能在 HKCEC)</p>
-                                <p><strong>議程：</strong>
-                                    <br>1. [Mattia] 展示家用染髮套組樣品 (討論設計、用量、便利性)。
-                                    <br>2. [研發] 討論漸進式染色洗髮精 (對標 Alpecin、規避專利、竹炭配方、無 SLES/PPD)。
-                                    <br>3. [O'right] 承諾提供 BASE 樣品供 Alfaparf 測試。
-                                </p>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-semibold">14:00 之後：葛董前往機場</h3>
-                                <p><strong>葛董</strong>於會議結束後，啟程前往香港國際機場 (HKG) 搭機返台。</p>
-                            </div>
-                             <div>
-                                <h3 class="text-xl font-semibold">14:00 - 17:00：[團隊] HKCEC 趨勢 & 補訪</h3>
-                                <p>葛董離港後，其餘團隊成員可利用下午剩餘時間，瀏覽 HKCEC 成品區趨勢，或針對 AWE/HKCEC 進行初步複訪。</p>
-                            </div>
+                    <!-- Itinerary -->
+                    <div class="space-y-6 mt-6">
+                        <!-- Day 1 - REVISED -->
+                        <div class="border-l-4 border-blue-500 pl-4 py-2 bg-gray-50 rounded-r-lg">
+                            <h3 class="text-xl font-semibold text-blue-700">Day 1: 11 月 11 日 (二) - 抵達 & AWE (A+級首要任務)</h3>
+                            <p class="text-sm text-gray-500 mb-2">主要場館：亞洲國際博覽館 (AWE) | 任務：關鍵設備、RFI 缺口確認</p>
+                            <ul class="list-disc list-inside ml-4 space-y-2 text-gray-800">
+                                <li><span class="font-bold">12:00 - 13:00</span>：抵港(HKG)，午餐，機場快線 (或步行) 至 AWE (行李寄存)。</li>
+                                <li><span class="font-bold">13:00 - 14:30</span>：<span class="bg-yellow-200 px-1 rounded">A+ 級任務 (設備)</span> - 40 分/家
+                                    <ul class="list-circle list-inside ml-8 mt-1 text-sm">
+                                        <li>13:00 - 13:40: AILUSI (充填機 首選) - 9-D23</li>
+                                        <li>13:40 - 14:20: Shanghai Gieni (充填機 備選) - 9-D20</li>
+                                    </ul>
+                                </li>
+                                <li><span class="font-bold">14:30 - 15:00</span>：移動緩衝 & 前往噴頭區。</li>
+                                <li><span class="font-bold">15:00 - 16:30</span>：<span class="bg-yellow-200 px-1 rounded">A 級任務 (RFI 噴頭缺口)</span> - 30 分/家
+                                    <ul class="list-circle list-inside ml-8 mt-1 text-sm">
+                                        <li>15:00 - 15:30: Yuyao Greenyard (噴頭) - 5-A19</li>
+                                        <li>15:30 - 16:00: Foshan Colorpump (噴頭) - 5-A27</li>
+                                        <li>16:00 - 16:30: Haifeng Packaging (噴頭) - 5-F02</li>
+                                    </ul>
+                                </li>
+                                <li><span class="font-bold">16:30 - 17:30</span>：AWE 自由探索：初步熟悉 A 級包材廠商位置 (Ying Yu, Hsu Bor)，為 Day 2 拜訪預做準備。</li>
+                                <li><span class="font-bold">17:30 - 18:00</span>：本日快速總結 (設備/噴頭)，確認 Day 2 AWE 任務。</li>
+                                <li><span class="font-bold">18:00</span>：展會結束，前往市區飯店，團隊晚餐與本日深度總結。</li>
+                            </ul>
                         </div>
-                    </div>
 
-                    <!-- Day 4: 11/14 (Fri) AM -->
-                    <div>
-                        <h2 class="text-3xl font-bold text-emerald-700">Day 4：11/14 (五) 上午 | [團隊] 關鍵複訪</h2>
-                        <p class="text-lg text-stone-600">主要目標：[決策] (團隊) 鎖定 Top 3 潛力廠商</p>
-                        <div class="mt-4 border-l-4 border-amber-500 pl-4 space-y-4">
-                            <div>
-                                <h3 class="text-xl font-semibold">09:30 - 12:30：戰略性複訪 (Callback)</h3>
-                                <p><strong>策略：</strong>(Mattia 及團隊) 這是最有價值時段。根據前三天的訪談，篩選出 2-3 家最有潛力的廠商 (例如：Ningbo Everflare 的鋁管、YAC 的氣霧瓶、Yuyao Greenyard 的噴頭)。</p>
-                                <p><strong>行動：</strong>返回 AWE 或 HKCEC (依廠商所在地)，攜帶樣品、圖紙或更詳細規格，與廠商決策者 (主管或老闆) 進行第二次深入洽談，討論價格、MOQ、交期及客製化可能。</p>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-semibold">12:30 之後：總結 & 前往機場</h3>
-                                <p>團隊整理四天筆記，準備搭機返台。</p>
-                            </div>
+                        <!-- Day 2 - REVISED -->
+                        <div class="border-l-4 border-blue-500 pl-4 py-2 bg-gray-50 rounded-r-lg">
+                            <h3 class="text-xl font-semibold text-blue-700">Day 2: 11 月 12 日 (三) - AWE 供應鏈深度稽核 (全天)</h3>
+                            <p class="text-sm text-gray-500 mb-2">主要場館：亞洲國際博覽館 (AWE) | 任務：A/B 級包材、氣霧瓶、鋁管</p>
+                            <ul class="list-disc list-inside ml-4 space-y-2 text-gray-800">
+                                <li><span class="font-bold">09:30 - 10:00</span>：團隊早會 (確認 AWE 完整拜訪清單)。</li>
+                                <li><span class="font-bold">10:00 - 12:30</span>：<span class="bg-yellow-200 px-1 rounded">A 級任務 (包材/氣霧瓶)</span> - 每家 30 分鐘
+                                    <ul class="list-circle list-inside ml-8 mt-1 text-sm">
+                                        <li>10:00 - 10:30: Shanghai Ying Yu (Tier 1 戰略) - 6-E08</li>
+                                        <li>10:30 - 11:00: Guangdong Hsu Bor (高端紙盒) - 5-J17</li>
+                                        <li>11:00 - 11:30: YAC Chemicals (BOV 氣霧瓶) - 10-J14</li>
+                                        <li>11:30 - 12:00: 廣東鵬偉 (YAC 關係) - 10-J26</li>
+                                        <li>12:00 - 12:30: Artech Beauty (環保形象) - 7-L06</li>
+                                    </ul>
+                                </li>
+                                <li><span class="font-bold">12:30 - 13:30</span>：午餐 / 內部討論 (A 級廠商初步反饋)。</li>
+                                <li><span class="font-bold">13:30 - 16:30</span>：<span class="bg-gray-200 px-1 rounded">B 級指定任務 (包材/鋁管)</span> - 每家 30 分鐘
+                                    <ul class="list-circle list-inside ml-8 mt-1 text-sm">
+                                        <li>13:30 - 14:00: Guangzhou Lanjing (玻璃) - 7-R29</li>
+                                        <li>14:00 - 14:30: Selective Packaging (竹木) - 7-N17</li>
+                                        <li>14:30 - 15:00: Hangzhou PESC (軟管) - 11-C13</li>
+                                        <li>15:00 - 15:30: Nantong Global (玻璃) - 9-G04</li>
+                                        <li>15:30 - 16:00: Ningbo Everflare (鋁管) - 11-D03</li>
+                                        <li>16:00 - 16:30: C 級廠商自由探索 (例如 `Rose Pack`)</li>
+                                    </ul>
+                                </li>
+                                <li><span class="font-bold">16:30 - 17:30</span>：<span class="bg-blue-200 px-1 rounded">A 級廠商複訪 (AWE)</span>
+                                    <p class="text-sm text-gray-600 ml-6">針對 Day 1 (設備) 或今日 (包材) 篩選出的 Top 3 廠商進行第二輪深入洽談。</p>
+                                </li>
+                                <li><span class="font-bold">17:30</span>：本日總結，確認 AWE 任務完成，明轉戰 HKCEC。</li>
+                            </ul>
+                        </div>
+
+                        <!-- Day 3 -->
+                        <div class="border-l-4 border-green-500 pl-4 py-2 bg-gray-50 rounded-r-lg">
+                            <h3 class="text-xl font-semibold text-green-700">Day 3: 11 月 13 日 (四) - HKCEC 成品區 & 關鍵會議</h3>
+                            <p class="text-sm text-gray-500 mb-2">主要場館：香港會議展覽中心 (HKCEC) | 任務：A+ 級染髮、香氛、Alfaparf 會議</p>
+                            <ul class="list-disc list-inside ml-4 space-y-2 text-gray-800">
+                                <li><span class="font-bold">09:30 - 10:00</span>：交通 (飯店前往 HKCEC)。</li>
+                                <li><span class="font-bold">10:00 - 12:00</span>：<span class="bg-yellow-200 px-1 rounded">A+ 級任務 (染髮專案)</span> - 每家 30-40 分鐘
+                                    <ul class="list-circle list-inside ml-8 mt-1 text-sm">
+                                        <li>10:00 - 10:40: Guangzhou Colornow (首選代工) - 3G-L1A</li>
+                                        <li>10:40 - 11:20: Guangzhou Boyan Meet (首選鋁管) - 3G-N2C</li>
+                                        <li>11:20 - 11:40: Guangzhou Livepro (代工備選) - 1E-Q7B</li>
+                                    </ul>
+                                </li>
+                                <li><span class="font-bold">12:00 - 12:30</span>：<span class="bg-gray-200 px-1 rounded">B 級任務 (木梳缺口確認)</span>
+                                    <ul class="list-circle list-inside ml-8 mt-1 text-sm">
+                                        <li>Bymace (木梳) - 3G-G4D (確認是否錯配，10 分鐘)</li>
+                                        <li>Sang Shin (木梳) - 3G-G1B (確認是否錯配，10 分鐘)</li>
+                                    </ul>
+                                </li>
+                                <li><span class="font-bold">12:30 - 13:00</span>：快速午餐 / 會議準備。</li>
+                                <li><span class="font-bold text-red-600">13:00 - 14:00</span>：<span class="bg-red-200 px-1 rounded">【關鍵會議】與 Alfaparf 研發會議 (攤位 3G-H2A, HKCEC)。</span></li>
+                                <li><span class="font-bold text-red-600">14:00 之後</span>：<span class="bg-red-200 px-1 rounded">葛董前往機場，搭機返台。</span></li>
+                                <li><span class="font-bold">14:00 - 15:30</span>：(Mattia 團隊) <span class="bg-yellow-200 px-1 rounded">B 級指定任務 (香氛)</span> - 30 分/家
+                                     <ul class="list-circle list-inside ml-8 mt-1 text-sm">
+                                        <li>14:30 - 15:00: Guangzhou Xuelei (香氛) - 1E-X3B</li>
+                                        <li>15:00 - 15:30: Huzhou Yufan (香氛) - 1E-X3A</li>
+                                    </ul>
+                                </li>
+                                <li><span class="font-bold">15:30 - 17:00</span>：HKCEC 自由探索：成品區競品分析、C 級廠商 (染髮, 香氛) 趨勢觀察。</li>
+                                <li><span class="font-bold">17:00</span>：團隊總結 (篩選 Day 4 最終複訪名單)。</li>
+                            </ul>
+                        </div>
+
+                        <!-- Day 4 -->
+                        <div class="border-l-4 border-purple-500 pl-4 py-2 bg-gray-50 rounded-r-lg">
+                            <h3 class="text-xl font-semibold text-purple-700">Day 4: 11 月 14 日 (五) - 關鍵複訪 & 離港 (半天)</h3>
+                            <p class="text-sm text-gray-500 mb-2">主要場館：AWE 或 HKCEC (擇一)</p>
+                            <ul class="list-disc list-inside ml-4 space-y-2 text-gray-800">
+                                <li><span class="font-bold">09:00 - 12:00</span>：<span class="bg-purple-200 px-1 rounded">【Callback 複訪】</span> 根據前三日篩選，返回 **HKCEC** (Colornow, Boyan) 或 **AWE** (AILUSI, Ying Yu) 進行最終洽談 (議價、規格、交期、MOQ)。</li>
+                                <li><span class="font-bold">12:00 - 13:00</span>：午餐 / 採購總結。</li>
+                                <li><span class="font-bold">13:00 之後</span>：團隊前往機場，搭機返台。</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-            </section>
-
-            <!-- Panel 3: Transport -->
-            <section id="panel-transport" role="tabpanel">
-                <h2 class="text-3xl font-bold text-emerald-700 mb-4">交通指南：穿梭兩大展館</h2>
-                <p class="mb-6 text-stone-700">2025 年展會分為兩個地點，規劃交通至關重要：</p>
-                <ul class="space-y-6">
-                    <li class="flex items-start">
-                        <span class="text-3xl mr-4 mt-1">✈️</span>
-                        <div>
-                            <h3 class="text-xl font-semibold">場館一：亞洲國際博覽館 (AWE)</h3>
-                            <p class="text-stone-600">展出內容：Cosmopack (包材、機械、原料、OEM)</p>
-                            <p class="mt-2"><strong>如何前往：</strong></p>
-                            <ul class="list-disc list-inside ml-4 text-stone-600">
-                                <li><strong>從機場 (HKG)：</strong>最快。搭乘「機場快線」(Airport Express) 僅 1 站 (約 2 分鐘) 即達。或可步行穿過相連通道。</li>
-                                <li><strong>從市區 (中環/九龍)：</strong>搭乘「機場快線」至「博覽館站」。</li>
-                            </ul>
-                        </div>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="text-3xl mr-4 mt-1">🏙️</span>
-                        <div>
-                            <h3 class="text-xl font-semibold">場館二：香港會議展覽中心 (HKCEC)</h3>
-                            <p class="text-stone-600">展出內容：Cosmoprof (化妝品、美容、美髮、美甲成品)</p>
-                            <p class="mt-2"><strong>如何前往：</strong></p>
-                            <ul class="list-disc list-inside ml-4 text-stone-600">
-                                <li><strong>從市區 (港鐵)：</strong>搭乘港鐵至「會展站」(Exhibition Centre Station)，B3 出口。</li>
-                                <li><strong>從市區 (天星小輪)：</strong>從尖沙咀搭乘天星小輪至「灣仔碼頭」，步行約 5-10 分鐘。</li>
-                            </ul>
-                        </div>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="text-3xl mr-4 mt-1">🔄</span>
-                        <div>
-                            <h3 class="text-xl font-semibold text-red-600">關鍵：如何來往 AWE 和 HKCEC (兩館之間)</h3>
-                            <p class="text-stone-600">這是最重要的一環。兩地相距甚遠（約 40-60 分鐘車程）。</p>
-                            <p class="mt-2"><strong>首選：免費穿梭巴士 (Free Shuttle Bus)</strong></p>
-                            <ul class="list-disc list-inside ml-4 text-stone-600">
-                                <li>主辦單位通常會提供免費的穿梭巴士，憑展會證件上車。</li>
-                                <li><strong>路線：</strong>AWE ↔ HKCEC (灣仔)。</li>
-                                <li><strong>優點：</strong>免費、直達。</li>
-                                <li><strong>缺點：</strong>需注意班次時間，交通高峰期可能塞車。</li>
-                            </ul>
-                            <p class="mt-2"><strong>備案：港鐵 (MTR)</strong></p>
-                             <ul class="list-disc list-inside ml-4 text-stone-600">
-                                <li><strong>路線：</strong>「博覽館站」搭機場快線 →「香港站」(需出站步行) →「中環站」轉港島線 →「會展站」。</li>
-                                <li><strong>優點：</strong>時間可控，不受路面交通影響。</li>
-                                <li><strong>缺點：</strong>費用較高，且需要轉乘步行。</li>
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
-            </section>
+            </div>
 
             <!-- Panel 4: Checklist -->
-            <section id="panel-checklist" role="tabpanel">
-                <h2 class="text-3xl font-bold text-emerald-700 mb-4">廠商參訪檢核表 (Checklist)</h2>
-                <p class="mb-6 text-stone-700">使用此清單確保涵蓋所有重點項目，可列印或在手機上勾選。</p>
-
-                <div class="space-y-4">
-                    <!-- 基本資料 -->
-                    <details class="bg-white p-4 rounded-lg shadow" open>
-                        <summary class="text-lg text-emerald-800">1. 基本資料 & 核心能力</summary>
-                        <div class="mt-2 space-y-2 text-stone-700">
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 取得名片或電子名片</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 索取電子型錄 (E-catalog)</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 詢問主要合作客戶 (知名廠商實績?)</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 是否為製造商 (Manufacturer) 或貿易商 (Trader)?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 工廠地點 (所在地?)</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 詢問台灣是否有代理商或分公司?</label>
+            <div id="panel-checklist" class="tab-panel">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <div class="flex justify-between items-center mb-6 no-print">
+                        <div>
+                            <h2 class="text-2xl font-bold text-blue-800">提問檢核表 (依廠商)</h2>
+                            <p class="text-gray-600">請從下拉選單中選擇要洽談的廠商，以載入客製化提問表。</p>
                         </div>
-                    </details>
+                        <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
+                            列印此檢核表
+                        </button>
+                    </div>
 
-                    <!-- 永續性 -->
-                    <details class="bg-white p-4 rounded-lg shadow" open>
-                        <summary class="text-lg text-emerald-800">2. 永續性 & 環保包材</summary>
-                        <div class="mt-2 space-y-2 text-stone-700">
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> PCR (消費後再生) 比例可提供多少 (%)?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 是否有單一材質 (Mono-material) 方案? (例如全 PP 壓頭)</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (紙材) 是否有 FSC 認證?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (紙材) 是否使用環保油墨 (Soy Ink)?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (紙材) 是否有無膠或少膠化設計?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (木/竹) 是否為天然實木? 材質為何?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (木/竹) 實物確認：無裂縫、無蟲眼、打磨光滑、無塗層?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (氣霧瓶) 是否有非石油系氣體方案? (如 Bio-DME)</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (氣霧瓶) 是否有 Bio-based 認證?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 環保緩衝材方案 (如紙塑、蘑菇)?</label>
-                        </div>
-                    </details>
+                    <div class="mb-6 no-print">
+                        <label for="checklist-vendor-select" class="block text-lg font-semibold mb-2">選擇廠商：</label>
+                        <select id="checklist-vendor-select" class="w-full p-3 border border-gray-300 rounded-md bg-white">
+                            <option value="">-- 請選擇 --</option>
+                            <!-- Options will be dynamically injected -->
+                        </select>
+                    </div>
 
-                    <!-- 規格 & 產能 -->
-                    <details class="bg-white p-4 rounded-lg shadow">
-                        <summary class="text-lg text-emerald-800">3. 規格 & 產能 (設備 / 包材)</summary>
-                        <div class="mt-2 space-y-2 text-stone-700">
-                            <label class="flex items-center"><input type="text" placeholder="MOQ (最低訂購量):" class="ml-2 w-full border-b"></label>
-                            <label class="flex items-center"><input type="text" placeholder="交貨期 (Lead Time):" class="ml-2 w-full border-b"></label>
-                            <label class="flex items-center"><input type="text" placeholder="打樣費用 / 時間:" class="ml-2 w-full border-b"></label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (噴頭) 噴量 (mL)? 噴嘴長度 (mm)?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (噴頭) 實物確認：防滲漏設計?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (鋁管) 實物確認：接縫狀況是否良好?</label>
-                        </div>
-                    </details>
+                    <div class="print-only">
+                        <h1 class="text-2xl font-bold mb-4">亞太美容展 - 廠商洽談檢核表</h1>
+                    </div>
 
-                    <!-- 自動化設備 -->
-                    <details class="bg-white p-4 rounded-lg shadow">
-                        <summary class="text-lg text-emerald-800">4. 自動化設備 (充填機)</summary>
-                        <div class="mt-2 space-y-2 text-stone-700">
-                            <label class="flex items-center"><input type="text" placeholder="產出 (支 / 分鐘):" class="ml-2 w-full border-b"></label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 操作 1 人以下? 是/否</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 自動容器氣洗? 是/否</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 自動上鎖蓋及檢查? 是/否</label>
-                            <label class="flex items-center"><input type="text" placeholder="換線時間 (分鐘):" class="ml-2 w-full border-b"></label>
-                            <label class="flex items-center"><input type="text" placeholder="設備尺寸 (長/寬/高):" class="ml-2 w-full border-b"></label>
-                            <label class="flex items-center"><input type="text" placeholder="維修保固條款:" class="ml-2 w-full border-b"></label>
-                        </div>
-                    </details>
+                    <div id="checklist-container">
+                        <p class="text-center text-gray-500 py-10">請從上方選擇一家廠商以開始。</p>
+                    </div>
                     
-                    <!-- OEM / 調香 -->
-                    <details class="bg-white p-4 rounded-lg shadow">
-                        <summary class="text-lg text-emerald-800">5. OEM / 調香</summary>
-                        <div class="mt-2 space-y-2 text-stone-700">
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (調香) 有 GC-MS 分析儀 (仿香)? 是/否</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (調香) 有 5 年以上調香師團隊? 是/否</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (調香) 有 IFRA 認證? 無動物實驗?</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> (OEM) 認證：GMPC / ISO22716?</label>
-                            <label class="flex items-center"><input type="text" placeholder="(OEM) 最小下單量 (MOQ):" class="ml-2 w-full border-b"></label>
+                    <!-- Add new question section -->
+                    <div id="checklist-controls" class="mt-8 pt-6 border-t-2 border-gray-200 no-print" style="display: none;">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">新增自訂提問</h3>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="new-question-input" class="flex-grow p-3 border border-gray-300 rounded-md" placeholder="在此輸入您想問的額外問題...">
+                            <button id="add-question-btn" class="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium">
+                                新增提問
+                            </button>
                         </div>
-                    </details>
-
-                    <!-- 新增：與 Alfaparf 會議重點 -->
-                    <details class="bg-white p-4 rounded-lg shadow border-l-8 border-amber-500" open>
-                        <summary class="text-lg text-emerald-800 font-bold">6. [重點] 與 Alfaparf 研發會議 (漸進式染髮)</summary>
-                        <div class="mt-4 space-y-2 text-stone-700">
-                            <h4 class="font-semibold text-md text-stone-800 pt-2 pb-1 border-b">A. 家用染髮套組 (樣品展示)</h4>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> <strong>[Mattia]</strong> 展示家用染髮套組樣品</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 討論：套組設計與配件優化 (梳子、圍兜、手套)</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 討論：髮長對應使用量標準化 (避免浪費或不足)</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 討論：操作便利性 (消費者體驗)</label>
-                            
-                            <h4 class="font-semibold text-md text-stone-800 pt-4 pb-1 border-b">B. 漸進式染色洗髮精 (新開發)</h4>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 確認定位：漸進式減白 (對標 Alpecin Grey Attack)</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 討論：Alpecin 專利色素的規避方案</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 提議配方：添加「竹炭」作為自然黑色形象</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4"> 確認訴求：不含 SLES、不含 PPD 及其衍生物</label>
-                            <label class="flex items-center"><input type="checkbox" class="mr-2 h-4 w-4 text-emerald-700"> <strong>[O'right Action]</strong> 承諾提供 BASE 樣品給 Alfaparf 測試</label>
-                        </div>
-                    </details>
+                    </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- Panel 5: Transport & Luggage -->
+            <div id="panel-transport" class="tab-panel">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-6 border-b-2 pb-3">交通與行李資訊 (V9 檢視版)</h2>
+                    
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">視覺化路線圖</h3>
+                    <div class="route-map p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <!-- Path 1: Airport to AWE -->
+                        <div class="route-path">
+                            <div class="route-node node-airport">香港機場 (HKG)</div>
+                            <div class="route-arrow">
+                                <span class="route-label">機場快線 (2 分鐘) / 步行 (15 分鐘)</span>
+                            </div>
+                            <div class="route-node node-awe">AWE (亞博館)</div>
+                        </div>
+                        
+                        <!-- Path 2: Airport to HKCEC -->
+                        <div class="route-path">
+                            <div class="route-node node-airport">香港機場 (HKG)</div>
+                            <div class="route-arrow">
+                                <span class="route-label">機場快線 (約 25 分鐘)</span>
+                            </div>
+                            <div class="route-node node-airport" style="border-color: #6c757d; color: #6c757d;">香港站</div>
+                            <div class="route-arrow">
+                                <span class="route-label">MTR (約 10 分鐘)</span>
+                            </div>
+                            <div class="route-node node-hkcec">灣仔站 (HKCEC)</div>
+                        </div>
+
+                        <!-- Path 3: AWE to HKCEC (Not Recommended) -->
+                        <div class="route-path">
+                            <div class="route-node node-awe">AWE (亞博館)</div>
+                            <div class="route-arrow" style="background-color: #dc3545;">
+                                <span class="route-label" style="color: #dc3545; font-weight: 600;">MTR 轉乘 (60-90 分鐘) - 不建議</span>
+                            </div>
+                            <div class="route-node node-hkcec">灣仔站 (HKCEC)</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6 mt-8">
+                        <!-- Section 1: Airport -> Venues -->
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">1. 交通工具檢視</h3>
+                            <ul class="list-disc list-inside ml-4 space-y-2 text-gray-700">
+                                <li>
+                                    <strong class="text-blue-700">【實用工具：八達通 (Octopus Card)】</strong>
+                                    <p class="text-sm ml-6">強烈建議抵港時於機場購買「租用版八達通」，可用於所有 MTR、機場快線、巴士及便利商店，可節省大量購票時間。</p>
+                                </li>
+                                <li>
+                                    <strong class="text-blue-700">【Day 1 路線：機場 -> AWE (亞博館)】</strong>
+                                    <ul class="list-circle list-inside ml-6 mt-1">
+                                        <li><span class="font-semibold">機場快線 (MTR):</span> 最快。乘 1 站 (約 2 分鐘) 從「機場站」到「博覽館站」。</li>
+                                        <li><span class="font-semibold">步行:</span> 免費。可從 T2 航廈步行連通道直達 AWE (約 15 分鐘)。此為 Day 1 最佳路線。</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong class="text-green-700">【市區 <-> HKCEC (會展中心)】</strong>
+                                    <ul class="list-circle list-inside ml-6 mt-1">
+                                        <li><span class="font-semibold">MTR (地鐵):</span> 乘 MTR 港島線至「灣仔站」 A5 出口 (有天橋) 或「會展站」 B3 出口，步行 10-15 分鐘。</li>
+                                    </ul>
+                                </li>
+                                 <li>
+                                    <strong class="text-red-700">【AWE <-> HKCEC (跨場館)】</strong>
+                                    <ul class="list-circle list-inside ml-6 mt-1">
+                                        <li><span class="font-semibold">強烈不建議當天往返。</span> 需搭乘 機場快線 (AWE -> 香港站) 再轉乘 MTR (香港站 -> 灣仔站)，全程含轉乘需 60-90 分鐘。這也是為何行程**必須**將 AWE (D1, D2) 和 HKCEC (D3) 完全分開。</li>
+                                    </ul>
+                                </li>
+                                 <li>
+                                    <strong class="text-gray-700">【替代方案：計程車 / Uber】</strong>
+                                    <ul class="list-circle list-inside ml-6 mt-1">
+                                        <li>從機場到 AWE (很近，但搭快線更方便)。</li>
+                                        <li>從機場到市區 (HKCEC/灣仔) 約 40-60 分鐘，費用約 350-450 港幣，需考慮塞車風險。</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Section 3: Luggage Storage -->
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">2. 行李寄放檢視</h3>
+                            <ul class="list-disc list-inside ml-4 space-y-2 text-gray-700">
+                                <li><span class="font-semibold">香港國際機場 (HKG):</span> 位於 T1 航廈，設有「S.F. Express」提供的 24 小時行李寄存服務 (依件、依時計費)。</li>
+                                <li><span class="font-semibold">AWE (亞博館):</span> 展館內通常設有「衣帽間 (Cloakroom)」或「行李寄存處」，可供參展商與訪客使用 (可能收費)。</li>
+                                <li><span class="font-semibold text-blue-700">Day 1 策略 (關鍵):</span> 12:00 抵港後，**立即將大件行李寄存在機場或 AWE 的寄存處**，只帶隨身公事包看展。</li>
+                                <li><span class="font-semibold text-purple-700">Day 4 策略:</span> 離港當天，可先將行李寄存在飯店，或使用機場快線「香港站」/「九龍站」的「市區預辦登機」服務 (需確認所搭乘的航空公司是否支援)。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Structure -->
+    <div id="vendorModal" class="modal no-print">
+        <div class="modal-content">
+            <span class="close-button" id="closeModal">&times;</span>
+            <h2 id="modalTitle" class="text-2xl font-bold text-blue-800 mb-4">廠商背景資料</h2>
+            <div id="modalBody" class="space-y-3 text-gray-700">
+                <!-- Content will be injected by JavaScript -->
+            </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const tabs = document.querySelectorAll('[role="tab"]');
-            const panels = document.querySelectorAll('[role="tabpanel"]');
+    (function() {
+        try {
+            // --- Comprehensive Vendor Database ---
+            // Merged from all sources (New Report + Original CSVs)
+            // **V9: 19 Vendors are now MustSee**
+            const vendorDatabase = {
+                // --- AEROSOL (氣霧瓶) ---
+                "yac_chemicals": {
+                    name: "YAC Chemicals Limited (雅克化工)",
+                    booth: "10-J14 (AWE)",
+                    category: "氣霧瓶",
+                    isMustSee: true,
+                    data: [
+                        { label: "廠商屬性", value: "OEM/ODM" },
+                        { label: "公司規模", value: "9條高速自動灌裝線 + 2條二元噴霧(BOV)灌裝線。年產量 > 8,000萬件。" },
+                        { label: "年營業額/出口", value: "年出口額約 US $16.8M (約 5 億台幣)。" },
+                        { label: "主力技術", value: "創新智慧氣霧劑，BOV 二元噴霧技術。" },
+                        { label: "代表客戶", value: "Walmart, Carrefour, Metro。" },
+                        { label: "相關認證", value: "GMPC, ISO 22716, ISO 9001, BSCI, Walmart (SGS), SCAN, SMETA 4P。" }
+                    ]
+                },
+                "peng_wei": {
+                    name: "廣東鵬偉精細化工有限公司",
+                    booth: "10-J26 (AWE)",
+                    category: ["氣霧瓶", "染髮代工"],
+                    isMustSee: true, // <-- ADDED BY USER (Batch 1)
+                    data: [
+                        { label: "廠商屬性", value: "OEM/ODM (YAC 集團製造基地)" },
+                        { label: "公司規模", value: "註冊資本 RMB 1,000 萬，約 68 人。" },
+                        { label: "主力技術", value: "頭髮噴霧劑，臉部/身體護理。" },
+                        { label: "網址", value: "yacgp.com (與 YAC 相同)" }
+                    ]
+                },
+                // --- ECO-PACK (環保包材) ---
+                "ying_yu": {
+                    name: "Shanghai Ying Yu Packaging (上海盈碩)",
+                    booth: "6-E08 (AWE)",
+                    category: "環保包材",
+                    isMustSee: true,
+                    data: [
+                        { label: "廠商屬性", value: "製造商 (Tier 1)" },
+                        { label: "公司規模", value: "規模巨大，約 1,500 人。" },
+                        { label: "主力技術", value: "化妝品瓶罐、乳液泵、噴霧器、瓶蓋。" },
+                        { label: "代表客戶", value: "L’Oréal, Shiseido, Dior, Estée Lauder。" },
+                        { label: "相關認證", value: "ISO 9001, ISO 45001, ISO 14001, SA8000。" }
+                    ]
+                },
+                "hsu_bor": {
+                    name: "Guangdong Hsu Bor (廣東忠柏)",
+                    booth: "5-J17 (AWE)",
+                    category: "環保包材",
+                    isMustSee: true,
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "規模大，約 1,000 人。" },
+                        { label: "主力技術", value: "專精紙盒、禮盒。燙印壓花、3D 表面處理技術。" },
+                        { label: "相關認證", value: "ISO 9001, ISO 14001, SA8000, FSC, G7。" }
+                    ]
+                },
+                "lanjing_glass": {
+                    name: "Guangzhou Lanjing Glass (廣州藍晶)",
+                    booth: "7-R29 (AWE)",
+                    category: "環保包材",
+                    isMustSee: true, // <-- ADDED BY USER (Batch 1)
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "約 400 人。" },
+                        { label: "主力技術", value: "化妝品玻璃瓶 (年產能 10 億支)。" }
+                    ]
+                },
+                "elcos": {
+                    name: "ELCOS Co., Ltd",
+                    booth: "3-A12 (AWE)",
+                    category: "環保包材",
+                    data: [
+                        { label: "廠商屬性", value: "製造商 (韓國/中國)" },
+                        { label: "公司規模", value: "中國廠約 101-500 人 (1984年創立)。" },
+                        { label: "主力技術", value: "定位高階，專精於空氣壓瓶 (Airless)。" }
+                    ]
+                },
+                "selective": {
+                    name: "Selective Packaging Ltd",
+                    booth: "7-N17 (AWE)",
+                    category: "環保包材",
+                    isMustSee: true, // <-- ADDED BY USER (Batch 1)
+                    data: [
+                        { label: "廠商屬性", value: "OEM/ODM" },
+                        { label: "公司規模", value: "約 51–100 人。" },
+                        { label: "年營業額/出口", value: "年營收約 1,000–5,000 萬美元，主要出口歐盟。" },
+                        { label: "主力技術", value: "專注於竹木包裝、鋁罐、鋁瓶。" }
+                    ]
+                },
+                "artech": {
+                    name: "Artech Beauty (泰客環保包裝)",
+                    booth: "7-L06 (AWE)",
+                    category: "環保包材",
+                    isMustSee: true,
+                    data: [
+                        { label: "廠商屬性", value: "整合/設計 (台灣公司)" },
+                        { label: "公司規模", value: "中型 (成立近20年)。" },
+                        { label: "主力技術", value: "跨國供應鏈能力，強調永續認證。" },
+                        { label: "相關認證", value: "FSC, GRS (全球回收標準), PCR。" }
+                    ]
+                },
+                "pesc": {
+                    name: "Hangzhou PESC Packaging (杭州派思克)",
+                    booth: "11-C13 (AWE)",
+                    category: "環保包材",
+                    isMustSee: true, // <-- ADDED BY USER (Batch 1)
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "50-100 人。" },
+                        { label: "主力技術", value: "PET/HDPE瓶、環保軟管 (11台吹瓶機)。" }
+                    ]
+                },
+                "idealpak": {
+                    name: "Guangzhou Idealpak Co., Ltd",
+                    booth: "7-T03 (AWE)",
+                    category: "環保包材",
+                    data: [
+                        { label: "產品種類", value: "包材" },
+                        { label: "所在地", value: "中國廣州" },
+                        { label: "資料來源", value: "環保包材.csv" }
+                    ]
+                },
+                "nantong_global": {
+                    name: "Nantong Global Packaging (南通環球)",
+                    booth: "9-G04 (AWE)",
+                    category: "環保包材",
+                    isMustSee: true, // <-- ADDED BY USER (Batch 1)
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "15 條產線 (日產 >150 萬)" },
+                        { label: "主力技術", value: "香水/指甲油玻璃瓶" },
+                        { label: "所在地", value: "中國江蘇" }
+                    ]
+                },
+                "chumboon": {
+                    name: "Ningbo Chumboon Plastic (寧波春邦)",
+                    booth: "11-D22 (AWE)",
+                    category: "環保包材",
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "73 人 (3 個工廠)" },
+                        { label: "主力技術", value: "吹塑瓶、注塑罐、泵頭、軟管" },
+                        { label: "所在地", value: "中國寧波" }
+                    ]
+                },
+                // --- ALUMINUM (鋁瓶/鋁管) ---
+                "boyan_meet": {
+                    name: "Guangzhou Boyan Meet (廣州博妍米特)",
+                    booth: "3G-N2C (HKCEC)",
+                    category: "鋁瓶/鋁管",
+                    isMustSee: true,
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "約 300 人。" },
+                        { label: "主力技術", value: "髮色色卡、髮束色樣，以及 **「染膏鋁軟管」**。" },
+                        { label: "代表客戶", value: "KEVIN.MURPHY, WELLA, L’Oréal, Schwarzkopf。" }
+                    ]
+                },
+                "everflare": {
+                    name: "Ningbo Everflare (寧波拓輝)",
+                    booth: "11-D03 (AWE)",
+                    category: "鋁瓶/鋁管",
+                    isMustSee: true, // <-- ADDED BY USER (Batch 2)
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "10,000m² 工廠，3 條自動化鋁瓶產線。" },
+                        { label: "生產能力", value: "日產量 20 萬件。" },
+                        { label: "主力技術", value: "鋁瓶、鋁罐、無接縫鋁管、不鏽鋼瓶。" },
+                        { label: "相關認證", value: "ISO 9001, ISO 14000。" }
+                    ]
+                },
+                "leishuo": {
+                    name: "Yiwu Leishuo (義烏磊碩)",
+                    booth: "9-G06 (AWE)",
+                    category: "鋁瓶/鋁管",
+                    data: [
+                        { label: "廠商屬性", value: "製造商（兼貿易）" },
+                        { label: "公司規模", value: "約 27 人 (10年以上經驗)。" },
+                        { label: "主力技術", value: "PE/PBL/ABL 軟管、PETG/PET 瓶、金屬包材。" },
+                        { label: "年營業額/出口", value: "客戶遍布東南亞、日韓、歐美。" }
+                    ]
+                },
+                "rose_pack": {
+                    name: "Rose Pack (Shanghai) Technology",
+                    booth: "9-A30 (AWE)",
+                    category: ["鋁瓶/鋁管", "小噴量噴頭"],
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "約 51-100 人" },
+                        { label: "主力技術", value: "玻璃瓶、塑膠瓶、鋁製品、噴頭" },
+                        { label: "所在地", value: "中國上海" }
+                    ]
+                },
+                // --- SPRAYER (小噴量噴頭) ---
+                "greenyard": {
+                    name: "Yuyao Greenyard (寧波綠亞)",
+                    booth: "5-A19 (AWE)",
+                    category: "小噴量噴頭",
+                    isMustSee: true,
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "約 67 人，註冊資本 RMB 500 萬。" },
+                        { label: "年營業額/出口", value: "約 70% 產品出口。" },
+                        { label: "主力技術", value: "噴霧器、香水噴頭、乳液泵。具備模具設計、注塑、自動化裝配。" },
+                        { label: "相關認證", value: "ISO 9001。" }
+                    ]
+                },
+                "colorpump": {
+                    name: "Foshan Colorpump (佛山彩泵)",
+                    booth: "5-A27 (AWE)",
+                    category: "小噴量噴頭",
+                    isMustSee: true,
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "51–100 人。" },
+                        { label: "主力技術", value: "化妝品泵頭、噴霧泵。50+ 台注塑機和 12 條泵頭製造線。" },
+                        { label: "相關認證", value: "SGS, Reach。" }
+                    ]
+                },
+                "jinqiu": {
+                    name: "Yuyao Jinqiu (余姚金球)",
+                    booth: "7-M26 (AWE)",
+                    category: "小噴量噴頭",
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "約 31 人。" },
+                        { label: "生產能力", value: "日產 20 萬+。" },
+                        { label: "主力技術", value: "香水霧化噴頭、乳液泵、PETG/PET 瓶。" }
+                    ]
+                },
+                "haifeng": {
+                    name: "Haifeng Packaging (海豐包裝)",
+                    booth: "5-F02 (AWE)",
+                    category: ["小噴量噴頭", "環保包材"],
+                    isMustSee: true, // <-- ADDED BY USER (Batch 2)
+                    data: [
+                        { label: "廠商屬性", value: "製造商 (香港公司，佛山製造)" },
+                        { label: "公司規模", value: "廠房 >20,000 平方米。" },
+                        { label: "主力技術", value: "細霧噴霧器、泡沫泵。70 台注塑機，12 條自動組裝線。" },
+                        { label: "相關認證", value: "ISO 9001。" }
+                    ]
+                },
+                "yuxiao": {
+                    name: "Ningbo Yuxiao (寧波余曉)",
+                    booth: "11-G03 (AWE)",
+                    category: "小噴量噴頭",
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "24 人 (2 萬 m² 廠房)" },
+                        { label: "主力技術", value: "噴霧器、trigger、蓋子" },
+                        { label: "備註", value: "已合作廠商" }
+                    ]
+                },
+                // --- COMB (木梳) ---
+                "sang_shin": {
+                    name: "Sang Shin Industrial Co., Ltd",
+                    booth: "3G-G1B (HKCEC)",
+                    category: "木梳",
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "所在地", value: "韓國" },
+                        { label: "公司規模", value: "約 11–50 人 (40+ 年經驗)。" },
+                        { label: "主力技術", value: "鋁質熱捲梳、方形梳、髮刷。" },
+                        { label: "稽核結論", value: "嚴重錯配。非 FSC 實木梳。" }
+                    ]
+                },
+                "bymace": {
+                    name: "Bymace Hair Beauty Co., Ltd.",
+                    booth: "3G-G4D (HKCEC)",
+                    category: "木梳",
+                    data: [
+                        { label: "廠商屬性", value: "製造商/貿易型" },
+                        { label: "所在地", value: "中國" },
+                        { label: "公司規模", value: "約 11–50 人。" },
+                        { label: "主力技術", value: "產品線繁雜：美髮刷、梳子、髮夾、噴瓶、沙龍服飾、染髮碗刷組等。" },
+                        { label: "稽核結論", value: "嚴重錯配。非 FSC 實木梳專業製造商。" }
+                    ]
+                },
+                // --- HAIR DYE OEM (染髮代工) ---
+                "colornow": {
+                    name: "Guangzhou Colornow (廣州卡樂)",
+                    booth: "3G-L1A (HKCEC)",
+                    category: "染髮代工",
+                    isMustSee: true,
+                    data: [
+                        { label: "廠商屬性", value: "製造商 (OEM/自有品牌)" },
+                        { label: "公司規模", value: "規模大，約 350 人。" },
+                        { label: "生產能力", value: "每月 1,000 公噸。" },
+                        { label: "主力技術", value: "染髮與漂髮用品、洗護與護理產品。" },
+                        { label: "代表客戶", value: "DISNEY, AKSEE, NPW, Gidon。" },
+                        { label: "相關認證", value: "ISO 9001, GMPC, SGS。" }
+                    ]
+                },
+                "livepro": {
+                    name: "Guangzhou Livepro Beauty",
+                    booth: "1E-Q7B (HKCEC)",
+                    category: "染髮代工",
+                    data: [
+                        { label: "廠商屬性", value: "OEM/ODM/OBM" },
+                        { label: "公司規模", value: "註冊資本 RMB 1,000 萬，約 29 人。" },
+                        { label: "主力技術", value: "護膚、身體護理、頭髮護理 (含家用染髮)。" },
+                        { label: "相關認證", value: "ISO 22716, GMP, ISO 9001, ISO 14001, ISO 45001。" }
+                    ]
+                },
+                "kesimei": {
+                    name: "Guangdong Kesimei (廣東可思美)",
+                    booth: "5F-D3J (HKCEC)",
+                    category: "染髮代工",
+                    data: [
+                        { label: "廠商屬性", value: "OEM/ODM" },
+                        { label: "公司規模", value: "規模非常小，約 13 人，註冊資本 RMB 100 萬。" },
+                        { label: "主力技術", value: "洗髮精、護髮素、染髮膏。" }
+                    ]
+                },
+                "nongcai": {
+                    name: "Guangzhou Nongcai Cosmetics",
+                    booth: "5F-C1B (HKCEC)",
+                    category: "染髮代工",
+                    data: [
+                        { label: "公司規模", value: "註冊資本 100 萬人民币 (2023 成立)" },
+                        { label: "產品種類", value: "批發美髮產品, OEM (含染髮)" },
+                        { label: "所在地", value: "中國廣州" }
+                    ]
+                },
+                // --- FRAGRANCE (香氛技術) ---
+                "xuelei": {
+                    name: "Guangzhou Xuelei (廣州雪蕾)",
+                    booth: "1E-X3B (HKCEC)",
+                    category: "香氛技術",
+                    isMustSee: true, // <-- ADDED BY USER (Batch 2)
+                    data: [
+                        { label: "廠商屬性", value: "OEM/ODM" },
+                        { label: "公司規模", value: "規模巨大，40,000m² 現代化香氛產業園區。" },
+                        { label: "生產能力", value: "香水香氛類年產能超 5,000 萬瓶。" },
+                        { label: "主力技術", value: "香水、香氛全方案解決專家。" }
+                    ]
+                },
+                "yufan": {
+                    name: "Huzhou Yufan (湖州御梵)",
+                    booth: "1E-X3A (HKCEC)",
+                    category: "香氛技術",
+                    isMustSee: true, // <-- ADDED BY USER (Batch 2)
+                    data: [
+                        { label: "廠商屬性", value: "OEM/ODM" },
+                        { label: "公司規模", value: "規模巨大，佔地 23,000m²，24 條生產線。" },
+                        { label: "生產能力", value: "年產量 1.5 億 PCS，年產值 15–20 億元。" },
+                        { label: "主力技術", value: "香水、香薰、精油。擁有「超聲波香水催陳系統」专利。" }
+                    ]
+                },
+                "leiqi": {
+                    name: "Guangdong Leiqi (廣東蕾琪)",
+                    booth: "10-M20 (AWE)",
+                    category: "香氛技術",
+                    data: [
+                        { label: "廠商屬性", value: "OEM/ODM" },
+                        { label: "公司規模", value: "中型，登記人數 128 人。" },
+                        { label: "主力技術", value: "彩妝、香水。與「聯合微粉」建立聯合實驗室。" },
+                        { label: "相關認證", value: "ISO 9001, ISO 22716, GMPC。" }
+                    ]
+                },
+                "bc_fragrance": {
+                    name: "Bc Fragrance & Aromatics",
+                    booth: "1E-M4D2 (HKCEC)",
+                    category: "香氛技術",
+                    data: [
+                        { label: "廠商屬性", value: "供應商" },
+                        { label: "所在地", value: "菲律賓" },
+                        { label: "公司規模", value: "2009 年成立" },
+                        { label: "主力技術", value: "香氛油、精油、私人品牌服務" },
+                        { label: "代表客戶", value: "Zen Zest, Giordano, Tomato Clothing" }
+                    ]
+                },
+                // --- FILLER (小mL充填機) ---
+                "ailusi": {
+                    name: "AILUSI / Guangzhou Ailusi (廣州艾路絲)",
+                    booth: "9-D23 (AWE)",
+                    category: "小mL充填機",
+                    isMustSee: true,
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "< 50 人。" },
+                        { label: "主力技術", value: "乳化攪拌罐、充填封尾機、旋蓋機、貼標整線。" },
+                        { label: "稽核結論", value: "初步確認可客製化，每分鐘產出 50 支以上。" }
+                    ]
+                },
+                "gieni": {
+                    name: "GIENICOS / Shanghai Gieni",
+                    booth: "9-D20 (AWE)",
+                    category: "小mL充填機",
+                    isMustSee: true,
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "20–50 人。" },
+                        { label: "年營業額/出口", value: "US $10–50 million。" },
+                        { label: "主力技術", value: "液體充填機、真空乳化機、理蓋鎖蓋機、貼標與包裝整線。" }
+                    ]
+                },
+                "fuluke": {
+                    name: "FULUKE / Guangzhou Fuluke",
+                    booth: "9-D22 (AWE)",
+                    category: "小mL充填機",
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "51–100 人。" },
+                        { label: "年營業額/出口", value: "US $5–10 Million。" },
+                        { label: "主力技術", value: "乳化攪拌罐、灌裝機、旋蓋機。" }
+                    ]
+                },
+                "sina_ekato": {
+                    name: "Sina Ekato (高郵/廣州)",
+                    booth: "9-F12 (AWE)",
+                    category: "小mL充填機",
+                    data: [
+                        { label: "廠商屬性", value: "製造商" },
+                        { label: "公司規模", value: "51–100 人。" },
+                        { label: "年營業額/出口", value: "US $10–50 million。" },
+                        { label: "主力技術", value: "真空乳化機、高剪切均質機、封尾機。" }
+                    ]
+                },
+                "xinyou": {
+                    name: "Guangzhou Xinyou Chemical",
+                    booth: "9-C24 (AWE)",
+                    category: "小mL充填機",
+                    data: [
+                        { label: "產品種類", value: "化工機械" },
+                        { label: "所在地", value: "中國廣州" }
+                    ]
+                },
+                "ltb_machinery": {
+                    name: "LTB Machinery Co.,Ltd",
+                    booth: "9-C23 (AWE)",
+                    category: "小mL充填機",
+                    data: [
+                        { label: "產品種類", value: "機械" },
+                        { label: "所在地", value: "中國" }
+                    ]
+                },
+                "sipuxin": {
+                    name: "Guangzhou Sipuxin Light",
+                    booth: "9-G29 (AWE)",
+                    category: "小mL充填機",
+                    data: [
+                        { label: "產品種類", value: "輕工業機械" },
+                        { label: "所在地", value: "中國廣州" }
+                    ]
+                }
+            };
+
+            // --- Checklist Data (V9 - ENHANCED) ---
+            const checklistData = {
+                // --- A+ TIER ---
+                "colornow": {
+                    name: "Guangzhou Colornow (廣州卡樂)",
+                    booth: "3G-L1A (HKCEC)",
+                    category: "染髮代工 (A+ 級)",
+                    questions: [
+                        "我們正開發『漸進式減白染髮洗髮精』，規格類比 Alpecin Grey Attack。",
+                        "貴司服務 Disney 的經驗中，如何處理歐盟/美國關於配方安全(例如 CMR 物質)與法規遵循？",
+                        "我們要求 PPD-free 和 SLES-free。SLES-free 配方的『起泡力』與『穩定性』貴司如何解決？",
+                        "對於『漸進式染色』(progressive dye) 配方，貴司的開發經驗如何？穩定性/上色效果？",
+                        "我們計畫使用『竹炭』(Bamboo Charcoal) 成分，這在 GMPC 產線的穩定性與染缸清潔度如何？",
+                        "如何規避 Alpecin 在專利色素上的限制？貴司有何替代方案？",
+                        "貴司的 GMPC/ISO 證書、ESG 或 碳足跡報告是否可供我方永續部門稽核？",
+                        "MOQ (最小訂購量) 是多少？",
+                        "從配方確認到量產的開發時程 (lead time)？"
+                    ]
+                },
+                "boyan_meet": {
+                    name: "Guangzhou Boyan Meet (廣州博妍米特)",
+                    booth: "3G-N2C (HKCEC)",
+                    category: "鋁瓶/鋁管 (A+ 級)",
+                    questions: [
+                        "我們知道您是 L’Oréal 和 Wella 的染膏管供應商。",
+                        "我們有一款 PPD-free 的漸進式染髮配方 (提供 BASE 樣品資訊)，需要進行相容性測試。",
+                        "請說明貴司鋁管『內部塗層 (Internal Liner)』的材質與技術，如何確保配方 5 年穩定性？",
+                        "貴司的氣密性技術是什麼？(例如：封尾膠) 如何防止氧化？",
+                        "是否提供 100% PCR (消費後回收) 鋁管方案？(請提供證書)",
+                        "貴司的 SA8000 / ESG 報告是否可供稽核？",
+                        "MOQ (最小訂購量) 是多少？",
+                        "交貨期 (lead time)？"
+                    ]
+                },
+                "ailusi": {
+                    name: "AILUSI / Guangzhou Ailusi",
+                    booth: "9-D23 (AWE)",
+                    category: "小mL充填機 (A+ 級)",
+                    questions: [
+                        "我們需要一條『小 mL 數充填線』(10-30mL 染髮劑)。",
+                        "【關鍵規格】產出是否能穩定達到『每分鐘 50 支以上』？",
+                        "【關鍵規格】是否包含『自動容器氣洗』(Air Wash)？",
+                        "【關鍵規格】是否包含『自動上鎖蓋及檢查』(Capping & Inspection)？",
+                        "【關鍵規格】操作人力是否為『1 人以下』？",
+                        "請提供符合上述所有規格的設備圖紙 (佔地空間 長/寬/高)？",
+                        "換線時間 (Change-over time) 預估多久？ (目標 < 30 分鐘)",
+                        "請提供完整報價 (含維修保固、台灣電壓 110V/220V)。"
+                    ]
+                },
+                // --- A TIER ---
+                "yac_chemicals": {
+                    name: "YAC Chemicals Limited (雅克化工)",
+                    booth: "10-J14 (AWE)",
+                    category: "氣霧瓶 (A 級)",
+                    questions: [
+                        "我們對您的『二元噴霧 (BOV)』產線感興趣，主要用於易氧化的高端配方。",
+                        "BOV 的二元袋 (bag) 本身材質是什麼？是否有 PCR 或可回收方案？",
+                        "【原始問題】是否為非石油系推進劑 (Bio-DME, HFO-1234ze, 壓縮空氣)？",
+                        "【原始問題】是否有 Bio-based (生質) 認證？ (請出示證書)",
+                        "BOV 方案的閥門與二元袋 (BOV) 是否穩定？是否有相容性測試報告？",
+                        "貴司的 Walmart / SMETA 4P 稽核報告是否可分享？",
+                        "MOQ (最小訂購量) 是多少？",
+                        "交貨期 (lead time)？"
+                    ]
+                },
+                "ying_yu": {
+                    name: "Shanghai Ying Yu Packaging (上海盈碩)",
+                    booth: "6-E08 (AWE)",
+                    category: "環保包材 (A 級)",
+                    questions: [
+                        "我們看到貴司是 L’Oréal, Dior 的 Tier 1 供應商。",
+                        "我們需要能體現『天然、竹炭』主題的環保包材。",
+                        "請展示貴司在 PCR, GRS (全球回收標準) 方面的實際產品案例。",
+                        "貴司的 SA8000 社會責任認證，對我們的永續報告很有價值，能否提供更多資料？",
+                        "【原始問題】是否有『無膠或少膠化』的結構設計？",
+                        "【原始問題】是否有『環保油墨』(大豆油墨) / 水性光 實績？",
+                        "MOQ 及交期？"
+                    ]
+                },
+                "hsu_bor": {
+                    name: "Guangdong Hsu Bor (廣東忠柏)",
+                    booth: "5-J17 (AWE)",
+                    category: "環保包材 (A 級)",
+                    questions: [
+                        "我們需要高端紙盒，要求 FSC 認證。",
+                        "請展示貴司的『3D 表面處理』和『燙印壓花』工藝樣品。",
+                        "貴司的 SA8000 / G7 / FSC 證書是否可供稽核？",
+                        "【原始問題】是否有『無膠或少膠化』的結構設計？(例如：卡榫結構)",
+                        "【原始問題】是否有『環保油墨』(大豆油墨) / 水性光 實績？",
+                        "【原始問題】是否有環保緩衝材 (紙塑) 方案？",
+                        "MOQ 及交期？"
+                    ]
+                },
+                "gieni": {
+                    name: "GIENICOS / Shanghai Gieni",
+                    booth: "9-D20 (AWE)",
+                    category: "小mL充填機 (A 級備選)",
+                    questions: [
+                        "我們在評估 AILUSI (9-D23)，想比較貴司的方案。",
+                        "【關鍵規格】產出是否能穩定達到『每分鐘 50 支以上』？",
+                        "【關鍵規格】是否包含『自動容器氣洗』？",
+                        "【關鍵規格】是否包含『自動上鎖蓋及檢查』？",
+                        "【關鍵規格】操作人力是否為『1 人以下』？",
+                        "請提供符合上述所有規格的設備圖紙 (佔地空間)？",
+                        "請提供完整報價 (含維修保固、台灣電壓)。"
+                    ]
+                },
+                 "artech": {
+                    name: "Artech Beauty (泰客環保包裝)",
+                    booth: "7-L06 (AWE)",
+                    category: "環保包材 (A 級)",
+                    questions: [
+                        "我們需要體現『天然、竹炭』主題的環保包材。",
+                        "請展示貴司的 FSC, GRS, PCR 認證證書。",
+                        "請提供使用 PCR 塑膠或 GRS 紙材的實際產品案例。",
+                        "貴司的 ESG 策略是什麼？",
+                        "MOQ 及交期？"
+                    ]
+                },
+                // --- B TIER (RFI) ---
+                "greenyard": {
+                    name: "Yuyao Greenyard (寧波綠亞)",
+                    booth: "5-A19 (AWE)",
+                    category: "小噴量噴頭 (B 級 RFI)",
+                    questions: [
+                        "【稽核缺口】我們需要『噴量 0.13mL 以下』的精密噴頭，用於髮根。",
+                        "貴司是否有符合此規格的產品？",
+                        "請提供規格書、樣品、以及『劑量測試報告』。",
+                        "【原始問題】是否有滲漏問題？ (請現場實物測試)",
+                        "【原始問題】噴嘴長度是否足夠 ( > 20mm)？",
+                        "MOQ 及交期？"
+                    ]
+                },
+                "colorpump": {
+                    name: "Foshan Colorpump (佛山彩泵)",
+                    booth: "5-A27 (AWE)",
+                    category: "小噴量噴頭 (B 級 RFI)",
+                    questions: [
+                        "【稽核缺口】我們需要『噴量 0.13mL 以下』的精密噴頭，用於髮根。",
+                        "貴司是否有符合此規格的產品？",
+                        "請提供規格書、樣品、以及『劑量測試報告』。",
+                        "【原始問題】是否有滲漏問題？ (請現場實物測試)",
+                        "MOQ 及交期？"
+                    ]
+                },
+                "haifeng": {
+                    name: "Haifeng Packaging (海豐包裝)",
+                    booth: "5-F02 (AWE)",
+                    category: "小噴量噴頭 (B 級 RFI)",
+                    questions: [
+                        "【稽核缺口】我們需要『噴量 0.13mL 以下』的精密噴頭。",
+                        "貴司有 70 台注塑機，是否能量產此類精密噴頭？",
+                        "請提供規格書、樣品、以及『劑量測試報告』。",
+                        "MOQ 及交期？"
+                    ]
+                },
+                "bymace": {
+                    name: "Bymace Hair Beauty",
+                    booth: "3G-G4D (HKCEC)",
+                    category: "木梳 (B 級 缺口確認)",
+                    questions: [
+                        "【稽核缺口】我們需要『FSC 認證』的『天然實木梳』，要求無上漆、無塗層。",
+                        "貴司是否為製造商？還是貿易商？",
+                        "是否有 FSC 認證？ (請出示證書)",
+                        "是否有符合『無上漆、天然實木』的樣品？ (現場確認)",
+                        "(若不符，立即結束洽談)"
+                    ]
+                },
+                // --- B TIER (User Batch 1) ---
+                "peng_wei": {
+                    name: "廣東鵬偉精細化工",
+                    booth: "10-J26 (AWE)",
+                    category: "氣霧瓶/染髮代工 (B 級)",
+                    questions: [
+                        "貴司與 YAC Chemicals (10-J14) 的關係是什麼？(總部/工廠?)",
+                        "BOV 二元噴霧產線是在貴司 (韶關) 還是 YAC (深圳)？",
+                        "染髮代工的 GMPC 認證是否在此廠區？",
+                        "主力產品為何？MOQ？交期？"
+                    ]
+                },
+                "lanjing_glass": {
+                    name: "Guangzhou Lanjing Glass",
+                    booth: "7-R29 (AWE)",
+                    category: "環保包材 (B 級)",
+                    questions: [
+                        "貴司主力產品為哪種玻璃瓶？(香水/護膚?)",
+                        "請展示高端護膚品 (例如：厚底霜瓶) 的樣品。",
+                        "是否提供 PCR 再生玻璃方案？比例？",
+                        "MOQ 及交期？"
+                    ]
+                },
+                "selective": {
+                    name: "Selective Packaging Ltd",
+                    booth: "7-N17 (AWE)",
+                    category: "環保包材 (B 級)",
+                    questions: [
+                        "我們對您的『竹木包裝』感興趣，以契合『竹炭』主題。",
+                        "是否能提供 FSC 認證的竹木材料？(請出示證書)",
+                        "請展示竹木與玻璃/塑膠結合的實際案例。",
+                        "MOQ 及交期？"
+                    ]
+                },
+                "pesc": {
+                    name: "Hangzhou PESC Packaging",
+                    booth: "11-C13 (AWE)",
+                    category: "環保包材 (B 級)",
+                    questions: [
+                        "請展示貴司的『環保軟管』樣品。",
+                        "是否能提供 PCR 軟管？最大比例？",
+                        "軟管的印刷工藝有哪些？(例如：3D 印刷、燙印)",
+                        "MOQ 及交期？"
+                    ]
+                },
+                "nantong_global": {
+                    name: "Nantong Global Packaging",
+                    booth: "9-G04 (AWE)",
+                    category: "環保包材 (B 級)",
+                    questions: [
+                        "貴司主力產品為香水/指甲油瓶。",
+                        "是否有生產厚底、高品質的『護膚品霜瓶』或『精華液瓶』？",
+                        "請提供相關樣品。",
+                        "MOQ 及交期？"
+                    ]
+                },
+                // --- B TIER (User Batch 2) ---
+                "everflare": {
+                    name: "Ningbo Everflare (寧波拓輝)",
+                    booth: "11-D03 (AWE)",
+                    category: "鋁瓶/鋁管 (B 級)",
+                    questions: [
+                        "【稽核缺口】我們需要『無接縫鋁管』(Seamless)。",
+                        "請展示貴司的無接縫鋁管樣品，並與 Boyan Meet (3G-N2C) 的樣品進行比較。",
+                        "是否能做染膏管所需的『內部塗層 (Internal Liner)』？",
+                        "MOQ 及交期？"
+                    ]
+                },
+                "xuelei": {
+                    name: "Guangzhou Xuelei (廣州雪蕾)",
+                    booth: "1E-X3B (HKCEC)",
+                    category: "香氛技術 (B 級)",
+                    questions: [
+                        "【稽核缺口】我們需要『仿香技術』(Scent Replication)。",
+                        "貴司 40,000m² 的園區是否配備『GC-MS 分析儀』？",
+                        "請說明貴司的調香師團隊資歷 (例如：5 年以上經驗)。",
+                        "香精是否符合 IFRA 51 / 歐盟 SCCS 最新規範？",
+                        "仿香的最低 MOQ？開發時程？"
+                    ]
+                },
+                "yufan": {
+                    name: "Huzhou Yufan (湖州御梵)",
+                    booth: "1E-X3A (HKCEC)",
+                    category: "香氛技術 (B 級)",
+                    questions: [
+                        "【稽核缺口】我們需要『仿香技術』(Scent Replication)。",
+                        "貴司是否配備『GC-MS 分析儀』？",
+                        "貴司的『超聲波香水催陳系統』專利，具體如何運作？對香氣穩定性有何幫助？",
+                        "香精是否符合 IFRA 51 / 歐盟 SCCS 最新規範？",
+                        "仿香的最低 MOQ？開發時程？"
+                    ]
+                },
+                 "alfaparf_meeting": {
+                    name: "Alfaparf 研發會議",
+                    booth: "3G-H2A (HKCEC)",
+                    category: "關鍵會議 (11/13 13:00)",
+                    questions: [
+                        "【展示】家用染髮套組樣品 (Mattia 攜帶)",
+                        "【討論】套組設計、配件組成、髮長對應使用量",
+                        "【提案】漸進式染色洗髮精 (Progressive Shampoo)",
+                        "【規格】效能比照 Alpecin Grey Attack",
+                        "【規格】配方添加『竹炭』(Bamboo Charcoal)",
+                        "【規格】訴求：不含 SLES",
+                        "【規格】訴求：不含 PPD 及其衍生物",
+                        "【釐清】Alpecin 的專利色素限制",
+                        "【行動】O'right 提供 BASE 樣品給 Alfaparf 測試"
+                    ]
+                }
+            };
+
+            // --- SCRIPT EXECUTION ---
             
+            // --- Tab Switching Logic ---
+            const tabs = document.querySelectorAll('.tab-button');
+            const panels = document.querySelectorAll('.tab-panel');
+
             tabs.forEach(tab => {
-                tab.addEventListener('click', (e) => {
-                    const targetPanel = document.getElementById(tab.getAttribute('aria-controls'));
+                tab.addEventListener('click', () => {
+                    const panelId = tab.getAttribute('data-panel-id');
 
-                    // Reset all tabs
-                    tabs.forEach(t => {
-                        t.setAttribute('aria-selected', 'false');
-                        t.classList.remove('text-emerald-700', 'font-semibold');
-                        t.classList.add('text-stone-600');
-                    });
+                    tabs.forEach(t => t.classList.remove('active'));
+                    panels.forEach(p => p.classList.remove('active'));
 
-                    // Set active tab
-                    tab.setAttribute('aria-selected', 'true');
-                    tab.classList.add('text-emerald-700', 'font-semibold');
-                    tab.classList.remove('text-stone-600');
-
-                    // Reset all panels
-                    panels.forEach(p => {
-                        p.classList.remove('active');
-                    });
-
-                    // Set active panel
+                    tab.classList.add('active');
+                    const targetPanel = document.getElementById(panelId);
                     if (targetPanel) {
                         targetPanel.classList.add('active');
                     }
                 });
             });
 
-            // Set the first tab as active by default
-            if (tabs.length > 0) {
-                // Check if there's a hash and auto-select that tab
-                const hash = window.location.hash;
-                let selectedTab = tabs[0];
-                if (hash) {
-                    const matchingTab = document.querySelector(`[role="tab"][aria-controls="${hash.substring(1)}"]`);
-                    if (matchingTab) {
-                        selectedTab = matchingTab;
-                    }
-                }
-                selectedTab.click();
+            // --- Modal Logic ---
+            const modal = document.getElementById('vendorModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const closeModalBtn = document.getElementById('closeModal');
+
+            const openModal = (vendorId) => {
+                const vendor = vendorDatabase[vendorId];
+                if (!vendor) return;
+
+                modalTitle.textContent = vendor.name;
+                modalBody.innerHTML = ''; // Clear
+
+                const booth = document.createElement('p');
+                booth.className = 'text-lg font-semibold text-blue-700 mb-3';
+                booth.textContent = `攤位號：${vendor.booth}`;
+                modalBody.appendChild(booth);
                 
-                // Add click listener to update hash for deep linking
-                tabs.forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        window.location.hash = tab.getAttribute('aria-controls');
+                const category = document.createElement('p');
+                category.className = 'text-md font-medium text-gray-600 mb-4';
+                const categories = Array.isArray(vendor.category) ? vendor.category : [vendor.category];
+                category.textContent = `類別：${categories.join(', ')}`;
+                modalBody.appendChild(category);
+
+                if (vendor.data && vendor.data.length > 0) {
+                    vendor.data.forEach(item => {
+                        const p = document.createElement('p');
+                        p.className = "border-b pb-2 mb-2 flex flex-col md:flex-row";
+                        const strong = document.createElement('strong');
+                        strong.className = 'text-gray-900 w-full md:w-1/3 flex-shrink-0';
+                        strong.textContent = `${item.label}：`;
+                        p.appendChild(strong);
+                        const valueSpan = document.createElement('span');
+                        valueSpan.className = "w-full md:w-2/3";
+                        valueSpan.textContent = ` ${item.value || 'N/A'}`;
+                        p.appendChild(valueSpan);
+                        modalBody.appendChild(p);
+                    });
+                } else {
+                    const p = document.createElement('p');
+                    p.textContent = "此廠商的詳細背景資料未在 CSV 檔案中提供。";
+                    modalBody.appendChild(p);
+                }
+
+                modal.style.display = 'block';
+            };
+
+            const closeModal = () => {
+                modal.style.display = 'none';
+            };
+
+            closeModalBtn.addEventListener('click', closeModal);
+            window.addEventListener('click', (event) => {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            });
+
+            // --- Panel 1: Master List Logic ---
+            const masterGrid = document.getElementById('master-vendor-grid');
+            const categoryFilter = document.getElementById('category-filter');
+
+            const renderMasterList = () => {
+                masterGrid.innerHTML = ''; // Clear grid
+                const filterValue = categoryFilter.value;
+                let vendorCount = 0;
+
+                Object.keys(vendorDatabase).forEach(key => {
+                    const vendor = vendorDatabase[key];
+                    const categories = Array.isArray(vendor.category) ? vendor.category : [vendor.category];
+
+                    if (filterValue === 'all' || categories.includes(filterValue)) {
+                        vendorCount++;
+                        const card = document.createElement('div');
+                        
+                        // Apply yellow bg if isMustSee
+                        const cardClass = vendor.isMustSee ? 'bg-yellow-100 border-l-4 border-yellow-500' : 'bg-white border-l-4 border-gray-300';
+                        
+                        card.className = `p-5 rounded-lg shadow hover:shadow-lg transition-shadow ${cardClass}`;
+                        card.innerHTML = `
+                            <h3 class="text-lg font-bold text-gray-900">${vendor.name}</h3>
+                            <p class="text-sm font-semibold text-blue-700">${vendor.booth}</p>
+                            <p class="text-sm text-gray-500 mt-1">類別：${categories.join(', ')}</p>
+                            <button class="open-modal-btn mt-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm font-medium" data-vendor-id="${key}">
+                                查看背景資料
+                            </button>
+                        `;
+                        masterGrid.appendChild(card);
+                    }
+                });
+
+                // Update filter count
+                const allOption = categoryFilter.querySelector('option[value="all"]');
+                if (filterValue === 'all' && allOption) {
+                    allOption.textContent = `所有類別 (共 ${vendorCount} 家)`;
+                }
+
+                // Attach listeners *after* buttons are created and added to the DOM
+                masterGrid.querySelectorAll('.open-modal-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const vendorId = btn.getAttribute('data-vendor-id');
+                        openModal(vendorId);
                     });
                 });
-            }
-        });
-    </script>
+            };
 
+            categoryFilter.addEventListener('change', renderMasterList);
+            
+
+            // --- Panel 4: Checklist Logic ---
+            const checklistSelect = document.getElementById('checklist-vendor-select');
+            const checklistContainer = document.getElementById('checklist-container');
+            const checklistControls = document.getElementById('checklist-controls');
+            const newQuestionInput = document.getElementById('new-question-input');
+            const addQuestionBtn = document.getElementById('add-question-btn');
+
+            // --- Sort checklistData by name for dropdown ---
+            const sortedChecklist = Object.keys(checklistData).sort((a, b) => {
+                return checklistData[a].name.localeCompare(checklistData[b].name);
+            });
+
+            sortedChecklist.forEach(key => {
+                const vendor = checklistData[key];
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = `${vendor.name} (${vendor.category})`;
+                checklistSelect.appendChild(option);
+            });
+
+            checklistSelect.addEventListener('change', () => {
+                const vendorId = checklistSelect.value;
+                if (!vendorId) {
+                    checklistContainer.innerHTML = '<p class="text-center text-gray-500 py-10">請從上方選擇一家廠商以開始。</p>';
+                    checklistControls.style.display = 'none'; // Hide controls
+                    return;
+                }
+
+                const vendor = checklistData[vendorId];
+                let questionsHtml = vendor.questions.map((q, index) => `
+                    <label for="q-${vendorId}-${index}">
+                        <input type="checkbox" id="q-${vendorId}-${index}">
+                        <span class="flex-1">${q}</span>
+                    </label>
+                `).join('');
+
+                checklistContainer.innerHTML = `
+                    <div class="print-only mb-4">
+                        <h2 class="text-xl font-bold">${vendor.name}</h2>
+                        <p class="text-lg text-gray-700">類別：${vendor.category}</p>
+                        <p class="text-lg text-gray-700">攤位號：${vendor.booth}</p>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">提問項目：</h3>
+                    <div class="space-y-3 mb-6" id="question-list-container">
+                        ${questionsHtml}
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">備註欄 (Notes)：</h3>
+                    <textarea class="editable-notes" placeholder="在此輸入您的洽談筆記..."></textarea>
+                `;
+                checklistControls.style.display = 'block'; // Show controls
+            });
+
+            // Add new question logic
+            addQuestionBtn.addEventListener('click', () => {
+                const text = newQuestionInput.value.trim();
+                if (text === "") return;
+
+                const listContainer = document.getElementById('question-list-container');
+                if (!listContainer) return;
+
+                const newLabel = document.createElement('label');
+                newLabel.className = "animate-pulse"; // Simple animation
+                newLabel.innerHTML = `
+                    <input type="checkbox" id="q-custom-${Date.now()}">
+                    <span class="flex-1 font-semibold text-purple-700">[自訂] ${text}</span>
+                `;
+                listContainer.appendChild(newLabel);
+                
+                // Clear input
+                newQuestionInput.value = "";
+                
+                // Animate
+                setTimeout(() => newLabel.classList.remove('animate-pulse'), 500);
+            });
+            
+            // --- Initial Render ---
+            // Must be at the end to ensure all functions are defined
+            renderMasterList(); 
+
+        } catch (e) {
+            console.error('參訪計畫腳本錯誤:', e);
+            alert('應用程式載入失敗，請檢查主控台錯誤。');
+        }
+    })();
+    </script>
 </body>
 </html>
